@@ -168,6 +168,15 @@
             color: #155724;
         }
 
+
+        .error-box {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
     </style>
 
 </head>
@@ -235,7 +244,8 @@
 
             <p>
                 Overview of donors, blood availability
-                and emergency requests.
+                and emergency requests from the shared
+                database.
             </p>
 
         </div>
@@ -406,6 +416,10 @@
 <script>
 
 
+/* ================================
+   BLOOD GROUPS
+================================ */
+
 const bloodGroups = [
 
     "A+",
@@ -421,67 +435,132 @@ const bloodGroups = [
 
 
 
-// Load donor statistics
+/* ================================
+   LOAD DONOR STATISTICS
+================================ */
+
 async function loadDonorStatistics() {
 
-    const donors =
-        await getAllDonors();
+    try {
+
+        const donors =
+            await getAllDonors();
 
 
-    const total =
-        donors.length;
+        const total =
+            donors.length;
 
 
-    const available =
-        donors.filter(function(donor) {
+        const available =
+            donors.filter(
+                function(donor) {
 
-            return donor.availability === "Available";
+                    return (
+                        donor.availability ===
+                        "Available"
+                    );
 
-        }).length;
+                }
+            ).length;
 
 
-    const unavailable =
-        total - available;
+        const unavailable =
+            total - available;
 
 
-    const groups =
-        new Set(
-            donors.map(function(donor) {
+        const groups =
+            new Set(
+                donors.map(
+                    function(donor) {
 
-                return donor.bloodGroup;
+                        return donor.bloodGroup;
 
-            })
+                    }
+                )
+            );
+
+
+        document.getElementById(
+            "totalDonors"
+        ).textContent = total;
+
+
+        document.getElementById(
+            "availableDonors"
+        ).textContent = available;
+
+
+        document.getElementById(
+            "unavailableDonors"
+        ).textContent = unavailable;
+
+
+        document.getElementById(
+            "bloodGroupCount"
+        ).textContent = groups.size;
+
+
+        displayBloodDistribution(
+            donors
+        );
+
+    }
+
+
+    catch(error) {
+
+        console.error(
+            "Donor statistics error:",
+            error
         );
 
 
-    document.getElementById(
-        "totalDonors"
-    ).textContent = total;
+        document.getElementById(
+            "totalDonors"
+        ).textContent = "0";
 
 
-    document.getElementById(
-        "availableDonors"
-    ).textContent = available;
+        document.getElementById(
+            "availableDonors"
+        ).textContent = "0";
 
 
-    document.getElementById(
-        "unavailableDonors"
-    ).textContent = unavailable;
+        document.getElementById(
+            "unavailableDonors"
+        ).textContent = "0";
 
 
-    document.getElementById(
-        "bloodGroupCount"
-    ).textContent = groups.size;
+        document.getElementById(
+            "bloodGroupCount"
+        ).textContent = "0";
 
 
-    displayBloodDistribution(donors);
+        document.getElementById(
+            "bloodDistribution"
+        ).innerHTML = `
+
+            <div class="error-box">
+
+                Unable to load donor data
+                from the shared database.
+
+            </div>
+
+        `;
+
+    }
 
 }
 
 
 
-// Display blood distribution
-function displayBloodDistribution(donors) {
+/* ================================
+   DISPLAY BLOOD DISTRIBUTION
+================================ */
+
+function displayBloodDistribution(
+    donors
+) {
 
     const container =
         document.getElementById(
@@ -492,64 +571,81 @@ function displayBloodDistribution(donors) {
     container.innerHTML = "";
 
 
-    bloodGroups.forEach(function(group) {
+    bloodGroups.forEach(
+        function(group) {
+
+            const count =
+                donors.filter(
+                    function(donor) {
+
+                        return (
+                            donor.bloodGroup ===
+                            group
+
+                            &&
+
+                            donor.availability ===
+                            "Available"
+                        );
+
+                    }
+                ).length;
 
 
-        const count =
-            donors.filter(function(donor) {
-
-                return (
-                    donor.bloodGroup === group &&
-                    donor.availability === "Available"
+            const card =
+                document.createElement(
+                    "div"
                 );
 
-            }).length;
+
+            card.className =
+                "blood-card";
 
 
-        const card =
-            document.createElement("div");
+            card.innerHTML = `
+
+                <h3>
+                    ${escapeHTML(group)}
+                </h3>
+
+                <div class="blood-count">
+                    ${count}
+                </div>
+
+                <p>
+                    Available Donors
+                </p>
+
+            `;
 
 
-        card.className =
-            "blood-card";
+            container.appendChild(
+                card
+            );
 
-
-        card.innerHTML = `
-
-            <h3>
-                ${group}
-            </h3>
-
-            <div class="blood-count">
-                ${count}
-            </div>
-
-            <p>
-                Available Donors
-            </p>
-
-        `;
-
-
-        container.appendChild(card);
-
-    });
+        }
+    );
 
 }
 
 
 
-// Load emergency requests
-function loadEmergencyRequests() {
+/* ================================
+   LOAD EMERGENCY REQUESTS
+================================ */
 
-    const request =
-        indexedDB.open(
-            "BloodConnectRequests"
-        );
+async function loadEmergencyRequests() {
+
+    try {
+
+        const requests =
+            await getAllEmergencyRequests();
 
 
-    request.onerror =
-        function() {
+        if (
+            !requests ||
+            requests.length === 0
+        ) {
 
             document.getElementById(
                 "totalRequests"
@@ -563,98 +659,95 @@ function loadEmergencyRequests() {
 
             document.getElementById(
                 "requestSummary"
-            ).innerHTML =
-                "<p>No emergency request data available.</p>";
+            ).innerHTML = `
 
-        };
+                <p>
+                    No emergency requests found.
+                </p>
 
+            `;
 
-    request.onsuccess =
-        function(event) {
+            return;
 
-            const db =
-                event.target.result;
-
-
-            if (
-                !db.objectStoreNames.contains(
-                    "requests"
-                )
-            ) {
-
-                document.getElementById(
-                    "requestSummary"
-                ).innerHTML =
-                    "<p>No emergency requests found.</p>";
-
-                return;
-
-            }
+        }
 
 
-            const transaction =
-                db.transaction(
-                    ["requests"],
-                    "readonly"
-                );
+        document.getElementById(
+            "totalRequests"
+        ).textContent =
+            requests.length;
 
 
-            const store =
-                transaction.objectStore(
-                    "requests"
-                );
+        const critical =
+            requests.filter(
+                function(request) {
 
-
-            const getRequest =
-                store.getAll();
-
-
-            getRequest.onsuccess =
-                function() {
-
-                    const requests =
-                        getRequest.result;
-
-
-                    document.getElementById(
-                        "totalRequests"
-                    ).textContent =
-                        requests.length;
-
-
-                    const critical =
-                        requests.filter(
-                            function(request) {
-
-                                return (
-                                    request.urgency ===
-                                    "Critical"
-                                );
-
-                            }
-                        ).length;
-
-
-                    document.getElementById(
-                        "criticalRequests"
-                    ).textContent =
-                        critical;
-
-
-                    displayRequests(
-                        requests
+                    return (
+                        request.urgency ===
+                        "Critical"
                     );
 
-                };
+                }
+            ).length;
 
-        };
+
+        document.getElementById(
+            "criticalRequests"
+        ).textContent =
+            critical;
+
+
+        displayRequests(
+            requests
+        );
+
+    }
+
+
+    catch(error) {
+
+        console.error(
+            "Emergency request loading error:",
+            error
+        );
+
+
+        document.getElementById(
+            "totalRequests"
+        ).textContent = "0";
+
+
+        document.getElementById(
+            "criticalRequests"
+        ).textContent = "0";
+
+
+        document.getElementById(
+            "requestSummary"
+        ).innerHTML = `
+
+            <div class="error-box">
+
+                Unable to load emergency requests
+                from the shared database.
+
+            </div>
+
+        `;
+
+    }
 
 }
 
 
 
-// Display emergency requests
-function displayRequests(requests) {
+/* ================================
+   DISPLAY EMERGENCY REQUESTS
+================================ */
+
+function displayRequests(
+    requests
+) {
 
     const container =
         document.getElementById(
@@ -665,113 +758,129 @@ function displayRequests(requests) {
     container.innerHTML = "";
 
 
-    if (requests.length === 0) {
+    requests.forEach(
+        function(request) {
 
-        container.innerHTML =
-            "<p>No emergency requests found.</p>";
-
-        return;
-
-    }
-
-
-    requests.forEach(function(request) {
+            const item =
+                document.createElement(
+                    "div"
+                );
 
 
-        const item =
-            document.createElement("div");
+            item.className =
+                "request-item";
 
 
-        item.className =
-            "request-item";
+            let urgencyClass =
+                "normal";
 
 
-        let urgencyClass =
-            "normal";
+            if (
+                request.urgency ===
+                "Critical"
+            ) {
+
+                urgencyClass =
+                    "critical";
+
+            }
+
+            else if (
+                request.urgency ===
+                "Urgent"
+            ) {
+
+                urgencyClass =
+                    "urgent";
+
+            }
 
 
-        if (
-            request.urgency ===
-            "Critical"
-        ) {
+            item.innerHTML = `
 
-            urgencyClass =
-                "critical";
+                <strong>
+                    ${escapeHTML(
+                        request.patientName
+                    )}
+                </strong>
+
+                <br>
+
+                Blood Group:
+                ${escapeHTML(
+                    request.bloodGroup
+                )}
+
+                <br>
+
+                Hospital:
+                ${escapeHTML(
+                    request.hospital
+                )}
+
+                <br>
+
+                Location:
+                ${escapeHTML(
+                    request.location
+                )}
+
+                <br>
+
+                Units Required:
+                ${escapeHTML(
+                    String(
+                        request.unitsRequired
+                    )
+                )}
+
+                <br>
+
+                Contact:
+                ${escapeHTML(
+                    request.contactNumber
+                )}
+
+                <br>
+
+                Urgency:
+
+                <span
+                    class="status ${urgencyClass}"
+                >
+
+                    ${escapeHTML(
+                        request.urgency
+                    )}
+
+                </span>
+
+            `;
+
+
+            container.appendChild(
+                item
+            );
 
         }
-        else if (
-            request.urgency ===
-            "Urgent"
-        ) {
-
-            urgencyClass =
-                "urgent";
-
-        }
-
-
-        item.innerHTML = `
-
-            <strong>
-                ${escapeHTML(
-                    request.patientName
-                )}
-            </strong>
-
-            <br>
-
-            Blood Group:
-            ${escapeHTML(
-                request.bloodGroup
-            )}
-
-            <br>
-
-            Hospital:
-            ${escapeHTML(
-                request.hospital
-            )}
-
-            <br>
-
-            Location:
-            ${escapeHTML(
-                request.location
-            )}
-
-            <br>
-
-            Units Required:
-            ${request.units}
-
-            <br>
-
-            Urgency:
-
-            <span
-                class="status ${urgencyClass}"
-            >
-                ${escapeHTML(
-                    request.urgency
-                )}
-            </span>
-
-        `;
-
-
-        container.appendChild(item);
-
-    });
+    );
 
 }
 
 
 
-// Escape HTML
-function escapeHTML(value) {
+/* ================================
+   SECURITY
+================================ */
+
+function escapeHTML(
+    value
+) {
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
 
     div.textContent =
@@ -784,22 +893,33 @@ function escapeHTML(value) {
 
 
 
-// Load everything
+/* ================================
+   LOAD EVERYTHING
+================================ */
+
 async function loadDashboard() {
 
-    await loadDonorStatistics();
+    await Promise.all([
 
-    loadEmergencyRequests();
+        loadDonorStatistics(),
+
+        loadEmergencyRequests()
+
+    ]);
 
 }
 
 
 
-// Start dashboard
+/* ================================
+   START DASHBOARD
+================================ */
+
 document.addEventListener(
     "DOMContentLoaded",
     loadDashboard
 );
+
 
 </script>
 
