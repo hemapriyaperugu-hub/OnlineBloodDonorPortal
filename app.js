@@ -154,10 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             location: location,
 
-            /*
-             * Supabase date column accepts
-             * a date or null.
-             */
             lastDonation: lastDonation || null,
 
             availability: availability,
@@ -282,10 +278,6 @@ async function searchDonors() {
 
     try {
 
-        /*
-         * Get donors from the shared
-         * Supabase database.
-         */
         const donors = await getAllDonors();
 
 
@@ -317,7 +309,9 @@ async function searchDonors() {
             });
 
 
-        displayDonorResults(filteredDonors);
+        displayDonorResults(
+            filteredDonors
+        );
 
 
     } catch (error) {
@@ -339,7 +333,9 @@ async function searchDonors() {
 function displayDonorResults(donors) {
 
     const results =
-        document.getElementById("donorResults");
+        document.getElementById(
+            "donorResults"
+        );
 
     if (!results) {
         return;
@@ -348,18 +344,22 @@ function displayDonorResults(donors) {
     results.innerHTML = "";
 
 
-    if (donors.length === 0) {
+    if (!donors || donors.length === 0) {
 
         results.innerHTML = `
+
             <div class="no-results">
 
-                <h3>No Donors Found</h3>
+                <h3>
+                    No Donors Found
+                </h3>
 
                 <p>
                     No matching donor records are available.
                 </p>
 
             </div>
+
         `;
 
         return;
@@ -371,7 +371,8 @@ function displayDonorResults(donors) {
         const card =
             document.createElement("div");
 
-        card.className = "donor-card";
+        card.className =
+            "donor-card";
 
 
         card.innerHTML = `
@@ -381,38 +382,80 @@ function displayDonorResults(donors) {
             </h3>
 
             <p>
-                <strong>Blood Group:</strong>
-                ${escapeHTML(donor.bloodGroup || "")}
+                <strong>
+                    Blood Group:
+                </strong>
+
+                ${escapeHTML(
+                    donor.bloodGroup || ""
+                )}
+
             </p>
 
-            <p>
-                <strong>Age:</strong>
-                ${escapeHTML(String(donor.age))}
-            </p>
 
             <p>
-                <strong>Phone:</strong>
-                ${escapeHTML(donor.phone || "")}
+                <strong>
+                    Age:
+                </strong>
+
+                ${escapeHTML(
+                    String(donor.age)
+                )}
+
             </p>
 
-            <p>
-                <strong>Location:</strong>
-                ${escapeHTML(donor.location || "")}
-            </p>
 
             <p>
-                <strong>Last Donation:</strong>
+                <strong>
+                    Phone:
+                </strong>
+
+                ${escapeHTML(
+                    donor.phone || ""
+                )}
+
+            </p>
+
+
+            <p>
+                <strong>
+                    Location:
+                </strong>
+
+                ${escapeHTML(
+                    donor.location || ""
+                )}
+
+            </p>
+
+
+            <p>
+                <strong>
+                    Last Donation:
+                </strong>
+
                 ${
                     donor.lastDonation
-                    ? escapeHTML(donor.lastDonation)
+                    ? escapeHTML(
+                        donor.lastDonation
+                    )
                     : "Not provided"
                 }
+
             </p>
 
+
             <p>
-                <strong>Availability:</strong>
-                ${escapeHTML(donor.availability || "")}
+                <strong>
+                    Availability:
+                </strong>
+
+                ${escapeHTML(
+                    donor.availability || ""
+                )}
+
             </p>
+
 
             <button
                 class="delete-btn"
@@ -484,7 +527,8 @@ function escapeHTML(value) {
     const div =
         document.createElement("div");
 
-    div.textContent = value;
+    div.textContent =
+        value ?? "";
 
     return div.innerHTML;
 
