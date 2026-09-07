@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -29,8 +29,10 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns:
-                repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(200px, 1fr)
+            );
             gap: 20px;
         }
 
@@ -63,6 +65,10 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 15px;
+        }
+
+        .reset-btn:hover {
+            background: #444;
         }
 
         .result-info {
@@ -183,6 +189,8 @@
             <div class="filter-grid">
 
 
+                <!-- BLOOD GROUP -->
+
                 <div class="form-group">
 
                     <label for="bloodGroup">
@@ -209,6 +217,8 @@
                 </div>
 
 
+                <!-- LOCATION -->
+
                 <div class="form-group">
 
                     <label for="location">
@@ -223,6 +233,8 @@
 
                 </div>
 
+
+                <!-- AVAILABILITY -->
 
                 <div class="form-group">
 
@@ -248,6 +260,8 @@
 
                 </div>
 
+
+                <!-- SORT -->
 
                 <div class="form-group">
 
@@ -283,6 +297,7 @@
             <div class="filter-buttons">
 
                 <button
+                    type="button"
                     class="search-btn"
                     onclick="searchDonors()"
                 >
@@ -291,6 +306,7 @@
 
 
                 <button
+                    type="button"
                     class="reset-btn"
                     onclick="resetSearch()"
                 >
@@ -306,7 +322,7 @@
             id="resultInfo"
             class="result-info"
         >
-            Showing all registered donors.
+            Loading donors from shared database...
         </div>
 
 
@@ -331,65 +347,120 @@
 </footer>
 
 
-
 <script>
-
 
 let allDonors = [];
 
 
-// Load donors
+/* ================================
+   LOAD DONORS FROM SUPABASE
+================================ */
+
 async function loadDonors() {
 
-    allDonors =
-        await getAllDonors();
+    const container =
+        document.getElementById("results");
 
-    displayResults(allDonors);
+    const info =
+        document.getElementById("resultInfo");
+
+    try {
+
+        info.textContent =
+            "Loading donors from shared database...";
+
+        allDonors = await getAllDonors();
+
+        displayResults(allDonors);
+
+    } catch (error) {
+
+        console.error(
+            "Error loading donors:",
+            error
+        );
+
+        info.textContent =
+            "Unable to load donors.";
+
+        container.innerHTML = `
+
+            <div class="empty-message">
+
+                <strong>
+                    Unable to load donor records.
+                </strong>
+
+                <p>
+                    Please check your internet connection
+                    and try again.
+                </p>
+
+            </div>
+
+        `;
+
+    }
 
 }
 
 
-// Search
+/* ================================
+   SEARCH DONORS
+================================ */
+
 function searchDonors() {
 
     const bloodGroup =
         document
-        .getElementById("bloodGroup")
-        .value;
+            .getElementById("bloodGroup")
+            .value
+            .trim();
 
 
     const location =
         document
-        .getElementById("location")
-        .value
-        .trim()
-        .toLowerCase();
+            .getElementById("location")
+            .value
+            .trim()
+            .toLowerCase();
 
 
     const availability =
         document
-        .getElementById("availability")
-        .value;
+            .getElementById("availability")
+            .value
+            .trim();
 
 
     const sortBy =
         document
-        .getElementById("sortBy")
-        .value;
+            .getElementById("sortBy")
+            .value;
 
 
     let filtered =
         allDonors.filter(function(donor) {
 
-
-            const bloodMatch =
-                !bloodGroup ||
-                donor.bloodGroup === bloodGroup;
+            const donorBloodGroup =
+                (donor.bloodGroup || "")
+                    .trim();
 
 
             const donorLocation =
                 (donor.location || "")
-                .toLowerCase();
+                    .trim()
+                    .toLowerCase();
+
+
+            const donorAvailability =
+                (donor.availability || "")
+                    .trim();
+
+
+            const bloodMatch =
+                !bloodGroup ||
+                donorBloodGroup === bloodGroup;
 
 
             const locationMatch =
@@ -399,7 +470,7 @@ function searchDonors() {
 
             const availabilityMatch =
                 !availability ||
-                donor.availability === availability;
+                donorAvailability === availability;
 
 
             return (
@@ -411,9 +482,11 @@ function searchDonors() {
         });
 
 
-    // Sorting
-    filtered.sort(function(a, b) {
+    /* ================================
+       SORT RESULTS
+    ================================ */
 
+    filtered.sort(function(a, b) {
 
         if (sortBy === "availability") {
 
@@ -424,6 +497,7 @@ function searchDonors() {
                 return -1;
             }
 
+
             if (
                 a.availability !== "Available" &&
                 b.availability === "Available"
@@ -431,22 +505,32 @@ function searchDonors() {
                 return 1;
             }
 
-            return a.name.localeCompare(b.name);
+
+            return (
+                (a.name || "")
+                    .localeCompare(b.name || "")
+            );
 
         }
 
 
         if (sortBy === "name") {
 
-            return a.name.localeCompare(b.name);
+            return (
+                (a.name || "")
+                    .localeCompare(b.name || "")
+            );
 
         }
 
 
         if (sortBy === "bloodGroup") {
 
-            return a.bloodGroup.localeCompare(
-                b.bloodGroup
+            return (
+                (a.bloodGroup || "")
+                    .localeCompare(
+                        b.bloodGroup || ""
+                    )
             );
 
         }
@@ -454,8 +538,11 @@ function searchDonors() {
 
         if (sortBy === "location") {
 
-            return a.location.localeCompare(
-                b.location
+            return (
+                (a.location || "")
+                    .localeCompare(
+                        b.location || ""
+                    )
             );
 
         }
@@ -471,19 +558,23 @@ function searchDonors() {
 }
 
 
-// Display results
+/* ================================
+   DISPLAY RESULTS
+================================ */
+
 function displayResults(donors) {
 
     const container =
-        document.getElementById(
-            "results"
-        );
+        document.getElementById("results");
 
 
     const info =
-        document.getElementById(
-            "resultInfo"
-        );
+        document.getElementById("resultInfo");
+
+
+    if (!container || !info) {
+        return;
+    }
 
 
     info.textContent =
@@ -495,7 +586,7 @@ function displayResults(donors) {
     container.innerHTML = "";
 
 
-    if (donors.length === 0) {
+    if (!donors || donors.length === 0) {
 
         container.innerHTML = `
 
@@ -520,7 +611,6 @@ function displayResults(donors) {
 
     donors.forEach(function(donor) {
 
-
         const card =
             document.createElement("div");
 
@@ -537,73 +627,116 @@ function displayResults(donors) {
         ) {
 
             statusHTML = `
+
                 <span class="available-label">
                     Available
                 </span>
+
             `;
 
         } else {
 
             statusHTML = `
+
                 <span class="unavailable-label">
                     Not Available
                 </span>
+
             `;
 
         }
 
 
-        
+        card.innerHTML = `
 
-           card.innerHTML = `
+            <h3>
+                🩸 ${escapeHTML(donor.name)}
+            </h3>
 
-    <h3>
-        🩸 ${escapeHTML(donor.name)}
-    </h3>
 
-    <p>
-        <strong>Blood Group:</strong>
-        ${escapeHTML(donor.bloodGroup)}
-    </p>
+            <p>
+                <strong>
+                    Blood Group:
+                </strong>
 
-    <p>
-        <strong>Age:</strong>
-        ${donor.age}
-    </p>
+                ${escapeHTML(
+                    donor.bloodGroup || ""
+                )}
 
-    <p>
-        <strong>Location:</strong>
-        ${escapeHTML(donor.location)}
-    </p>
+            </p>
 
-    <p>
-        <strong>Phone:</strong>
-        ${escapeHTML(donor.phone)}
-    </p>
 
-    <p>
-        <strong>Last Donation:</strong>
-        ${
-            donor.lastDonation
-            ? escapeHTML(donor.lastDonation)
-            : "Not provided"
-        }
-    </p>
+            <p>
+                <strong>
+                    Age:
+                </strong>
 
-    <p>
-        <strong>Status:</strong>
-        ${statusHTML}
-    </p>
+                ${escapeHTML(
+                    String(donor.age ?? "")
+                )}
 
-    <button
-        class="search-btn"
-        onclick="viewDonorProfile(${donor.id})"
-    >
-        View Profile
-    </button>
+            </p>
 
-`;
-      
+
+            <p>
+                <strong>
+                    Location:
+                </strong>
+
+                ${escapeHTML(
+                    donor.location || ""
+                )}
+
+            </p>
+
+
+            <p>
+                <strong>
+                    Phone:
+                </strong>
+
+                ${escapeHTML(
+                    donor.phone || ""
+                )}
+
+            </p>
+
+
+            <p>
+                <strong>
+                    Last Donation:
+                </strong>
+
+                ${
+                    donor.lastDonation
+                    ? escapeHTML(
+                        donor.lastDonation
+                    )
+                    : "Not provided"
+                }
+
+            </p>
+
+
+            <p>
+                <strong>
+                    Status:
+                </strong>
+
+                ${statusHTML}
+
+            </p>
+
+
+            <button
+                type="button"
+                class="search-btn"
+                onclick="viewDonorProfile(${Number(donor.id)})"
+            >
+                View Profile
+            </button>
+
+        `;
 
 
         container.appendChild(card);
@@ -611,15 +744,25 @@ function displayResults(donors) {
     });
 
 }
-// View donor profile
+
+
+/* ================================
+   VIEW DONOR PROFILE
+================================ */
+
 function viewDonorProfile(id) {
 
     window.location.href =
-        "donor-profile.html?id=" + id;
+        "donor-profile.html?id=" +
+        encodeURIComponent(id);
 
 }
 
-// Reset
+
+/* ================================
+   RESET SEARCH
+================================ */
+
 function resetSearch() {
 
     document.getElementById(
@@ -647,7 +790,10 @@ function resetSearch() {
 }
 
 
-// Escape HTML
+/* ================================
+   ESCAPE HTML
+================================ */
+
 function escapeHTML(value) {
 
     const div =
@@ -663,10 +809,17 @@ function escapeHTML(value) {
 }
 
 
-// Start
+/* ================================
+   START PAGE
+================================ */
+
 document.addEventListener(
     "DOMContentLoaded",
-    loadDonors
+    function () {
+
+        loadDonors();
+
+    }
 );
 
 </script>
