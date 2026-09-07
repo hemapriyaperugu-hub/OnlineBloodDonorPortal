@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Donor - BloodConnect</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+
+        <div class="logo">🩸 BloodConnect</div>
+
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="register.html">Register</a>
+            <a href="find-donor.html">Find Donor</a>
+            <a href="eligibility.html">Eligibility</a>
+        </div>
+
+    </nav>
+</header>
+
+<main>
+
+<section class="page active">
+
+    <div class="container">
+
+        <h2>Find a Blood Donor</h2>
+
+        <p class="section-description">
+            Search registered donors by blood group and location.
+        </p>
+
+        <div class="search-panel">
+
+            <div class="form-group">
+
+                <label for="searchBloodGroup">
+                    Blood Group
+                </label>
+
+                <select id="searchBloodGroup">
+
+                    <option value="">
+                        All Blood Groups
+                    </option>
+
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="searchLocation">
+                    Location
+                </label>
+
+                <input
+                    type="text"
+                    id="searchLocation"
+                    placeholder="Enter city/location"
+                >
+
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="searchDonors()"
+            >
+                Search Donors
+            </button>
+
+        </div>
+
+        <div id="donorResults"></div>
+
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+    <p>
+        © 2026 BloodConnect | Online Blood Donor Registration Portal
+    </p>
+</footer>
+
+<script src="../database.js"></script>
+<script src="../app.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        displayAllDonors();
+    });
+</script>
+
+</body>
+</html>

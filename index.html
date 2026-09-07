@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodConnect - Online Blood Donor Registration Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar">
+            <div class="logo">🩸 BloodConnect</div>
+
+            <div class="nav-links">
+                <button onclick="showPage('home')">Home</button>
+                <button onclick="showPage('register')">Register</button>
+                <button onclick="showPage('find')">Find Donor</button>
+                <button onclick="showPage('about')">About</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- HOME -->
+        <section id="home" class="page active">
+
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>Donate Blood, Save Lives</h1>
+                    <p>
+                        Connect blood donors with people who need blood.
+                        Every donation can make a difference.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <button class="primary-btn" onclick="showPage('register')">
+                            Become a Donor
+                        </button>
+
+                        <button class="secondary-btn" onclick="showPage('find')">
+                            Find a Donor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+
+                <h2>How BloodConnect Helps</h2>
+
+                <div class="cards">
+
+                    <div class="card">
+                        <div class="card-icon">🩸</div>
+                        <h3>Register</h3>
+                        <p>
+                            Register yourself as a blood donor by providing
+                            your basic information and availability.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🔎</div>
+                        <h3>Find Donors</h3>
+                        <p>
+                            Search for available donors based on blood group
+                            and location.
+                        </p>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">❤️</div>
+                        <h3>Save Lives</h3>
+                        <p>
+                            Help people find potential blood donors when
+                            they need them.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REGISTER -->
+        <section id="register" class="page">
+
+            <div class="container">
+
+                <h2>Become a Blood Donor</h2>
+
+                <p class="section-description">
+                    Register your details to become a potential blood donor.
+                </p>
+
+                <form id="donorForm">
+
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            placeholder="Enter your full name"
+                            required
+                        >
+                    </div>
+
+                    <div class="two-columns">
+
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input
+                                type="number"
+                                id="age"
+                                min="18"
+                                max="65"
+                                placeholder="Enter your age"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bloodGroup">Blood Group</label>
+
+                            <select id="bloodGroup" required>
+                                <option value="">Select Blood Group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input
+                            type="tel"
+                            id="phone"
+                            maxlength="10"
+                            placeholder="Enter 10-digit phone number"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input
+                            type="text"
+                            id="location"
+                            placeholder="Enter your city/location"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="lastDonation">
+                            Last Donation Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="lastDonation"
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="availability">
+                            Availability
+                        </label>
+
+                        <select id="availability" required>
+                            <option value="">Select Availability</option>
+                            <option value="Available">Available</option>
+                            <option value="Not Available">Not Available</option>
+                        </select>
+                    </div>
+
+
+                    <button type="submit" class="primary-btn">
+                        Register as Donor
+                    </button>
+
+                    <div id="formMessage"></div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- FIND DONOR -->
+        <section id="find" class="page">
+
+            <div class="container">
+
+                <h2>Find a Blood Donor</h2>
+
+                <p class="section-description">
+                    Search for registered donors using blood group and location.
+                </p>
+
+
+                <div class="search-panel">
+
+                    <div class="form-group">
+
+                        <label for="searchBloodGroup">
+                            Blood Group
+                        </label>
+
+                        <select id="searchBloodGroup">
+
+                            <option value="">All Blood Groups</option>
+
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="searchLocation">
+                            Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="searchLocation"
+                            placeholder="Enter location"
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="primary-btn"
+                        onclick="searchDonors()"
+                    >
+                        Search Donors
+                    </button>
+
+                </div>
+
+
+                <div id="donorResults"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ABOUT -->
+        <section id="about" class="page">
+
+            <div class="container about-section">
+
+                <h2>About BloodConnect</h2>
+
+                <p>
+                    BloodConnect is an online blood donor registration portal
+                    designed to make it easier to register potential blood
+                    donors and search for donors based on blood group and
+                    location.
+                </p>
+
+                <p>
+                    The application works directly in the web browser and
+                    stores donor information locally on the device using
+                    browser storage technology.
+                </p>
+
+                <div class="info-box">
+
+                    <h3>Important Note</h3>
+
+                    <p>
+                        This is an academic project. Donor eligibility and
+                        medical suitability must always be confirmed by
+                        qualified healthcare professionals or authorized
+                        blood banks.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            © 2026 BloodConnect | Online Blood Donor Registration Portal
+        </p>
+
+    </footer>
+
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>
