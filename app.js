@@ -1,3 +1,4 @@
+```javascript
 /* ================================
    PAGE NAVIGATION
 ================================ */
@@ -10,19 +11,16 @@ function showPage(pageId) {
         page.classList.remove("active");
     });
 
-
     const selectedPage = document.getElementById(pageId);
 
     if (selectedPage) {
         selectedPage.classList.add("active");
     }
 
-
     window.scrollTo({
         top: 0,
         behavior: "smooth"
     });
-
 
     if (pageId === "find") {
         displayAllDonors();
@@ -38,16 +36,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const donorForm = document.getElementById("donorForm");
 
-
     if (!donorForm) {
         return;
     }
 
-
     donorForm.addEventListener("submit", async function (event) {
 
         event.preventDefault();
-
 
         const name =
             document.getElementById("name").value.trim();
@@ -73,7 +68,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("availability").value;
 
 
-        /* VALIDATION */
+        /* ================================
+           VALIDATION
+        ================================ */
 
         if (name.length < 3) {
 
@@ -141,7 +138,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        /* DONOR OBJECT */
+        /* ================================
+           DONOR OBJECT
+        ================================ */
 
         const donor = {
 
@@ -155,37 +154,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
             location: location,
 
-            lastDonation: lastDonation || "Not provided",
+            /*
+             * Supabase date column accepts
+             * a date or null.
+             */
+            lastDonation: lastDonation || null,
 
             availability: availability,
 
             registeredDate:
                 new Date().toISOString()
-
         };
 
+
+        /* ================================
+           SAVE TO SUPABASE
+        ================================ */
 
         try {
 
             await addDonor(donor);
-
 
             showMessage(
                 "Donor registered successfully!",
                 "success"
             );
 
-
             donorForm.reset();
-
 
         } catch (error) {
 
-            console.error(error);
-
+            console.error(
+                "Registration error:",
+                error
+            );
 
             showMessage(
-                "Unable to register donor.",
+                "Unable to register donor. Please try again.",
                 "error"
             );
 
@@ -205,14 +210,11 @@ function showMessage(message, type) {
     const messageBox =
         document.getElementById("formMessage");
 
-
     if (!messageBox) {
         return;
     }
 
-
     messageBox.textContent = message;
-
 
     if (type === "success") {
 
@@ -223,7 +225,6 @@ function showMessage(message, type) {
         messageBox.style.color = "red";
 
     }
-
 
     setTimeout(() => {
 
@@ -248,7 +249,10 @@ async function displayAllDonors() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Unable to load donors:",
+            error
+        );
 
     }
 
@@ -278,26 +282,39 @@ async function searchDonors() {
 
     try {
 
+        /*
+         * Get donors from the shared
+         * Supabase database.
+         */
         const donors = await getAllDonors();
 
 
-        const filteredDonors = donors.filter(donor => {
+        const filteredDonors =
+            donors.filter(donor => {
 
-            const bloodMatch =
-                !bloodGroup ||
-                donor.bloodGroup.toLowerCase() === bloodGroup;
-
-
-            const locationMatch =
-                !location ||
-                donor.location
-                    .toLowerCase()
-                    .includes(location);
+                const donorBloodGroup =
+                    (donor.bloodGroup || "")
+                        .toLowerCase();
 
 
-            return bloodMatch && locationMatch;
+                const donorLocation =
+                    (donor.location || "")
+                        .toLowerCase();
 
-        });
+
+                const bloodMatch =
+                    !bloodGroup ||
+                    donorBloodGroup === bloodGroup;
+
+
+                const locationMatch =
+                    !location ||
+                    donorLocation.includes(location);
+
+
+                return bloodMatch && locationMatch;
+
+            });
 
 
         displayDonorResults(filteredDonors);
@@ -305,7 +322,10 @@ async function searchDonors() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Search error:",
+            error
+        );
 
     }
 
@@ -321,11 +341,9 @@ function displayDonorResults(donors) {
     const results =
         document.getElementById("donorResults");
 
-
     if (!results) {
         return;
     }
-
 
     results.innerHTML = "";
 
@@ -334,10 +352,13 @@ function displayDonorResults(donors) {
 
         results.innerHTML = `
             <div class="no-results">
+
                 <h3>No Donors Found</h3>
+
                 <p>
                     No matching donor records are available.
                 </p>
+
             </div>
         `;
 
@@ -356,12 +377,12 @@ function displayDonorResults(donors) {
         card.innerHTML = `
 
             <h3>
-                ${escapeHTML(donor.name)}
+                🩸 ${escapeHTML(donor.name)}
             </h3>
 
             <p>
                 <strong>Blood Group:</strong>
-                ${escapeHTML(donor.bloodGroup)}
+                ${escapeHTML(donor.bloodGroup || "")}
             </p>
 
             <p>
@@ -371,22 +392,26 @@ function displayDonorResults(donors) {
 
             <p>
                 <strong>Phone:</strong>
-                ${escapeHTML(donor.phone)}
+                ${escapeHTML(donor.phone || "")}
             </p>
 
             <p>
                 <strong>Location:</strong>
-                ${escapeHTML(donor.location)}
+                ${escapeHTML(donor.location || "")}
             </p>
 
             <p>
                 <strong>Last Donation:</strong>
-                ${escapeHTML(donor.lastDonation)}
+                ${
+                    donor.lastDonation
+                    ? escapeHTML(donor.lastDonation)
+                    : "Not provided"
+                }
             </p>
 
             <p>
                 <strong>Availability:</strong>
-                ${escapeHTML(donor.availability)}
+                ${escapeHTML(donor.availability || "")}
             </p>
 
             <button
@@ -427,16 +452,23 @@ async function removeDonor(id) {
 
         await deleteDonor(id);
 
-        alert("Donor deleted successfully.");
+        alert(
+            "Donor deleted successfully."
+        );
 
         displayAllDonors();
 
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Delete error:",
+            error
+        );
 
-        alert("Unable to delete donor.");
+        alert(
+            "Unable to delete donor."
+        );
 
     }
 
@@ -457,3 +489,4 @@ function escapeHTML(value) {
     return div.innerHTML;
 
 }
+```
