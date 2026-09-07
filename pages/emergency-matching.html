@@ -3,13 +3,23 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Emergency Matching - BloodConnect</title>
 
-    <link rel="stylesheet" href="../style.css">
+    <link
+        rel="stylesheet"
+        href="../style.css"
+    >
+
     <script src="../database.js"></script>
+
 
     <style>
 
@@ -21,14 +31,17 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
+
         .request-card h3 {
             margin-top: 0;
             color: #b71c1c;
         }
 
+
         .request-card p {
             margin: 7px 0;
         }
+
 
         .match-btn {
             margin-top: 12px;
@@ -41,13 +54,16 @@
             font-size: 15px;
         }
 
+
         .match-btn:hover {
             background: #8e0000;
         }
 
+
         .match-section {
             margin-top: 30px;
         }
+
 
         .match-card {
             background: white;
@@ -58,9 +74,11 @@
             box-shadow: 0 2px 7px rgba(0,0,0,0.08);
         }
 
+
         .match-card h3 {
             margin-top: 0;
         }
+
 
         .no-match {
             background: #fff3cd;
@@ -69,11 +87,21 @@
             margin-top: 15px;
         }
 
+
         .info-box {
             background: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 25px;
+        }
+
+
+        .error-box {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
 
     </style>
@@ -83,6 +111,7 @@
 
 <body>
 
+
 <header>
 
     <nav class="navbar">
@@ -91,25 +120,33 @@
             🩸 BloodConnect
         </div>
 
+
         <div class="nav-links">
 
-            <a href="../index.html">Home</a>
+            <a href="../index.html">
+                Home
+            </a>
+
 
             <a href="register.html">
                 Register
             </a>
 
+
             <a href="find-donor.html">
                 Find Donor
             </a>
+
 
             <a href="donor-dashboard.html">
                 Dashboard
             </a>
 
+
             <a href="blood-availability.html">
                 Availability
             </a>
+
 
             <a href="emergency-request.html">
                 Emergency
@@ -122,13 +159,16 @@
 </header>
 
 
+
 <section class="page active">
 
     <div class="container">
 
+
         <h1>
             Emergency Donor Matching
         </h1>
+
 
         <div class="info-box">
 
@@ -136,14 +176,16 @@
                 How it works:
             </strong>
 
+
             <p>
                 Select an emergency blood request below.
-                BloodConnect will search the locally stored
-                donor records for available donors with the
-                required blood group.
+                BloodConnect will search the shared donor
+                database for available donors with the
+                required blood group and location.
             </p>
 
         </div>
+
 
 
         <h2>
@@ -160,6 +202,7 @@
         </div>
 
 
+
         <div
             id="matchingSection"
             class="match-section"
@@ -170,13 +213,16 @@
                 Matching Donors
             </h2>
 
+
             <div id="matchingResults"></div>
 
         </div>
 
+
     </div>
 
 </section>
+
 
 
 <footer>
@@ -189,88 +235,85 @@
 </footer>
 
 
+
 <script>
 
 
-// Load emergency requests
-function loadRequests() {
+/* ================================
+   LOAD EMERGENCY REQUESTS
+================================ */
 
-    const request =
-        indexedDB.open(
-            "BloodConnectRequests"
+async function loadRequests() {
+
+    const container =
+        document.getElementById(
+            "requestList"
         );
 
 
-    request.onerror = function() {
+    try {
 
-        document.getElementById(
-            "requestList"
-        ).innerHTML =
-            "<p>Unable to load emergency requests.</p>";
-
-    };
+        const requests =
+            await getAllEmergencyRequests();
 
 
-    request.onsuccess = function(event) {
+        if (
+            !requests ||
+            requests.length === 0
+        ) {
 
-        const db = event.target.result;
+            container.innerHTML = `
 
-        // Check whether database contains requests store
-        if (!db.objectStoreNames.contains("requests")) {
+                <p>
+                    No emergency requests available.
+                </p>
 
-            document.getElementById(
-                "requestList"
-            ).innerHTML =
-                "<p>No emergency requests found.</p>";
+            `;
 
             return;
+
         }
 
 
-        const transaction =
-            db.transaction(
-                ["requests"],
-                "readonly"
-            );
+        displayRequests(
+            requests
+        );
+
+    }
 
 
-        const store =
-            transaction.objectStore("requests");
+    catch(error) {
+
+        console.error(
+            "Emergency request loading error:",
+            error
+        );
 
 
-        const getRequest =
-            store.getAll();
+        container.innerHTML = `
 
+            <div class="error-box">
 
-        getRequest.onsuccess =
-            function() {
+                Unable to load emergency requests
+                from the shared database.
 
-                const requests =
-                    getRequest.result;
+            </div>
 
+        `;
 
-                if (requests.length === 0) {
-
-                    document.getElementById(
-                        "requestList"
-                    ).innerHTML =
-                        "<p>No emergency requests available.</p>";
-
-                    return;
-                }
-
-
-                displayRequests(requests);
-
-            };
-
-    };
+    }
 
 }
 
 
-// Display requests
-function displayRequests(requests) {
+
+/* ================================
+   DISPLAY REQUESTS
+================================ */
+
+function displayRequests(
+    requests
+) {
 
     const container =
         document.getElementById(
@@ -281,73 +324,144 @@ function displayRequests(requests) {
     container.innerHTML = "";
 
 
-    requests.forEach(function(request) {
+    requests.forEach(
+        function(request) {
 
-        const card =
-            document.createElement("div");
-
-
-        card.className =
-            "request-card";
-
-
-        card.innerHTML = `
-
-            <h3>
-                ${escapeHTML(request.patientName)}
-            </h3>
-
-            <p>
-                <strong>Blood Group:</strong>
-                ${escapeHTML(request.bloodGroup)}
-            </p>
-
-            <p>
-                <strong>Units Required:</strong>
-                ${request.units}
-            </p>
-
-            <p>
-                <strong>Hospital:</strong>
-                ${escapeHTML(request.hospital)}
-            </p>
-
-            <p>
-                <strong>Location:</strong>
-                ${escapeHTML(request.location)}
-            </p>
-
-            <p>
-                <strong>Contact:</strong>
-                ${escapeHTML(request.contact)}
-            </p>
-
-            <p>
-                <strong>Urgency:</strong>
-                ${escapeHTML(request.urgency)}
-            </p>
-
-            <button
-                class="match-btn"
-                onclick="findMatchingDonors(
-                    '${request.bloodGroup}',
-                    '${escapeAttribute(request.location)}'
-                )"
-            >
-                Find Matching Donors
-            </button>
-
-        `;
+            const card =
+                document.createElement(
+                    "div"
+                );
 
 
-        container.appendChild(card);
+            card.className =
+                "request-card";
 
-    });
+
+            card.innerHTML = `
+
+                <h3>
+
+                    ${escapeHTML(
+                        request.patientName
+                    )}
+
+                </h3>
+
+
+                <p>
+
+                    <strong>
+                        Blood Group:
+                    </strong>
+
+                    ${escapeHTML(
+                        request.bloodGroup
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Units Required:
+                    </strong>
+
+                    ${escapeHTML(
+                        String(
+                            request.unitsRequired
+                        )
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Hospital:
+                    </strong>
+
+                    ${escapeHTML(
+                        request.hospital
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Location:
+                    </strong>
+
+                    ${escapeHTML(
+                        request.location
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Contact:
+                    </strong>
+
+                    ${escapeHTML(
+                        request.contactNumber
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Urgency:
+                    </strong>
+
+                    ${escapeHTML(
+                        request.urgency
+                    )}
+
+                </p>
+
+
+                <button
+                    class="match-btn"
+                    onclick="findMatchingDonors(
+                        '${escapeAttribute(
+                            request.bloodGroup
+                        )}',
+                        '${escapeAttribute(
+                            request.location
+                        )}'
+                    )"
+                >
+
+                    Find Matching Donors
+
+                </button>
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        }
+    );
 
 }
 
 
-// Find matching donors
+
+/* ================================
+   FIND MATCHING DONORS
+================================ */
+
 async function findMatchingDonors(
     bloodGroup,
     location
@@ -369,47 +483,117 @@ async function findMatchingDonors(
         "block";
 
 
-    results.innerHTML =
-        "<p>Searching for matching donors...</p>";
+    results.innerHTML = `
+
+        <p>
+            Searching for matching donors...
+        </p>
+
+    `;
 
 
-    const donors =
-        await getAllDonors();
+    try {
+
+        const donors =
+            await getAllDonors();
 
 
-    const requiredLocation =
-        location.trim().toLowerCase();
+        const requiredBloodGroup =
+            String(
+                bloodGroup || ""
+            )
+            .trim()
+            .toUpperCase();
 
 
-    const matches =
-        donors.filter(function(donor) {
+        const requiredLocation =
+            String(
+                location || ""
+            )
+            .trim()
+            .toLowerCase();
 
-            const donorLocation =
-                (donor.location || "")
-                .trim()
-                .toLowerCase();
+
+        const matches =
+            donors.filter(
+                function(donor) {
+
+                    const donorBloodGroup =
+                        String(
+                            donor.bloodGroup || ""
+                        )
+                        .trim()
+                        .toUpperCase();
 
 
-            return (
+                    const donorLocation =
+                        String(
+                            donor.location || ""
+                        )
+                        .trim()
+                        .toLowerCase();
 
-                donor.bloodGroup === bloodGroup &&
 
-                donor.availability === "Available" &&
+                    return (
 
-                donorLocation === requiredLocation
+                        donorBloodGroup ===
+                        requiredBloodGroup
 
+                        &&
+
+                        donor.availability ===
+                        "Available"
+
+                        &&
+
+                        donorLocation ===
+                        requiredLocation
+
+                    );
+
+                }
             );
 
-        });
+
+        displayMatches(
+            matches
+        );
+
+    }
 
 
-    displayMatches(matches);
+    catch(error) {
+
+        console.error(
+            "Donor matching error:",
+            error
+        );
+
+
+        results.innerHTML = `
+
+            <div class="error-box">
+
+                Unable to search the shared
+                donor database.
+
+            </div>
+
+        `;
+
+    }
 
 }
 
 
-// Display matching donors
-function displayMatches(matches) {
+
+/* ================================
+   DISPLAY MATCHING DONORS
+================================ */
+
+function displayMatches(
+    matches
+) {
 
     const container =
         document.getElementById(
@@ -420,7 +604,10 @@ function displayMatches(matches) {
     container.innerHTML = "";
 
 
-    if (matches.length === 0) {
+    if (
+        !matches ||
+        matches.length === 0
+    ) {
 
         container.innerHTML = `
 
@@ -429,6 +616,7 @@ function displayMatches(matches) {
                 <strong>
                     No exact matching donors found.
                 </strong>
+
 
                 <p>
                     Try checking another location or
@@ -440,91 +628,176 @@ function displayMatches(matches) {
         `;
 
         return;
+
     }
 
 
-    matches.forEach(function(donor) {
 
-        const card =
-            document.createElement("div");
+    matches.forEach(
+        function(donor) {
 
-
-        card.className =
-            "match-card";
-
-
-        card.innerHTML = `
-
-            <h3>
-                🩸 ${escapeHTML(donor.name)}
-            </h3>
-
-            <p>
-                <strong>Blood Group:</strong>
-                ${escapeHTML(donor.bloodGroup)}
-            </p>
-
-            <p>
-                <strong>Location:</strong>
-                ${escapeHTML(donor.location)}
-            </p>
-
-            <p>
-                <strong>Age:</strong>
-                ${donor.age}
-            </p>
-
-            <p>
-                <strong>Phone:</strong>
-                ${escapeHTML(donor.phone)}
-            </p>
-
-            <p>
-                <strong>Availability:</strong>
-                ${escapeHTML(donor.availability)}
-            </p>
-
-        `;
+            const card =
+                document.createElement(
+                    "div"
+                );
 
 
-        container.appendChild(card);
+            card.className =
+                "match-card";
 
-    });
+
+            card.innerHTML = `
+
+                <h3>
+
+                    🩸
+                    ${escapeHTML(
+                        donor.name
+                    )}
+
+                </h3>
+
+
+                <p>
+
+                    <strong>
+                        Blood Group:
+                    </strong>
+
+                    ${escapeHTML(
+                        donor.bloodGroup
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Location:
+                    </strong>
+
+                    ${escapeHTML(
+                        donor.location
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Age:
+                    </strong>
+
+                    ${escapeHTML(
+                        String(
+                            donor.age
+                        )
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Phone:
+                    </strong>
+
+                    ${escapeHTML(
+                        donor.phone
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Availability:
+                    </strong>
+
+                    ${escapeHTML(
+                        donor.availability
+                    )}
+
+                </p>
+
+            `;
+
+
+            container.appendChild(
+                card
+            );
+
+        }
+    );
 
 }
 
 
-// Prevent HTML injection
-function escapeHTML(value) {
+
+/* ================================
+   SECURITY
+================================ */
+
+function escapeHTML(
+    value
+) {
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     div.textContent =
         value ?? "";
+
 
     return div.innerHTML;
 
 }
 
 
-// Escape attribute values
-function escapeAttribute(value) {
 
-    return String(value ?? "")
-        .replace(/\\/g, "\\\\")
-        .replace(/'/g, "\\'");
+/* ================================
+   ESCAPE ATTRIBUTE
+================================ */
+
+function escapeAttribute(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    );
 
 }
 
 
-// Start
+
+/* ================================
+   START
+================================ */
+
 document.addEventListener(
     "DOMContentLoaded",
     loadRequests
 );
 
+
 </script>
+
 
 </body>
 
