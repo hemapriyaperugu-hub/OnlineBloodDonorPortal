@@ -1,13 +1,22 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Emergency Blood Request - BloodConnect</title>
 
-    <link rel="stylesheet" href="../style.css">
+    <link
+        rel="stylesheet"
+        href="../style.css"
+    >
 
     <style>
 
@@ -149,6 +158,7 @@
 
 <body>
 
+
 <header>
 
     <nav class="navbar">
@@ -156,6 +166,7 @@
         <div class="logo">
             🩸 BloodConnect
         </div>
+
 
         <div class="nav-links">
 
@@ -190,11 +201,15 @@
 </header>
 
 
+
 <main>
 
 <section class="page active">
 
     <div class="container">
+
+
+        <!-- EMERGENCY HEADER -->
 
         <div class="emergency-header">
 
@@ -210,6 +225,7 @@
         </div>
 
 
+
         <!-- REQUEST FORM -->
 
         <form
@@ -222,11 +238,16 @@
             </h3>
 
 
+
             <div class="form-group">
 
                 <label for="patientName">
-                    Patient Name <span class="required">*</span>
+
+                    Patient Name
+                    <span class="required">*</span>
+
                 </label>
+
 
                 <input
                     type="text"
@@ -238,13 +259,19 @@
             </div>
 
 
+
             <div class="two-columns">
+
 
                 <div class="form-group">
 
                     <label for="requiredBloodGroup">
-                        Blood Group <span class="required">*</span>
+
+                        Blood Group
+                        <span class="required">*</span>
+
                     </label>
+
 
                     <select
                         id="requiredBloodGroup"
@@ -255,26 +282,53 @@
                             Select Blood Group
                         </option>
 
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
+                        <option value="A+">
+                            A+
+                        </option>
+
+                        <option value="A-">
+                            A-
+                        </option>
+
+                        <option value="B+">
+                            B+
+                        </option>
+
+                        <option value="B-">
+                            B-
+                        </option>
+
+                        <option value="AB+">
+                            AB+
+                        </option>
+
+                        <option value="AB-">
+                            AB-
+                        </option>
+
+                        <option value="O+">
+                            O+
+                        </option>
+
+                        <option value="O-">
+                            O-
+                        </option>
 
                     </select>
 
                 </div>
 
 
+
                 <div class="form-group">
 
                     <label for="units">
+
                         Units Required
                         <span class="required">*</span>
+
                     </label>
+
 
                     <input
                         type="number"
@@ -287,15 +341,20 @@
 
                 </div>
 
+
             </div>
+
 
 
             <div class="form-group">
 
                 <label for="hospital">
+
                     Hospital / Medical Center
                     <span class="required">*</span>
+
                 </label>
+
 
                 <input
                     type="text"
@@ -307,11 +366,16 @@
             </div>
 
 
+
             <div class="form-group">
 
                 <label for="requestLocation">
-                    Location <span class="required">*</span>
+
+                    Location
+                    <span class="required">*</span>
+
                 </label>
+
 
                 <input
                     type="text"
@@ -323,12 +387,16 @@
             </div>
 
 
+
             <div class="form-group">
 
                 <label for="contactNumber">
+
                     Contact Number
                     <span class="required">*</span>
+
                 </label>
+
 
                 <input
                     type="tel"
@@ -341,11 +409,16 @@
             </div>
 
 
+
             <div class="form-group">
 
                 <label for="urgency">
-                    Urgency <span class="required">*</span>
+
+                    Urgency
+                    <span class="required">*</span>
+
                 </label>
+
 
                 <select
                     id="urgency"
@@ -373,11 +446,15 @@
             </div>
 
 
+
             <div class="form-group">
 
                 <label for="additionalInfo">
+
                     Additional Information
+
                 </label>
+
 
                 <textarea
                     id="additionalInfo"
@@ -396,12 +473,14 @@
             </div>
 
 
+
             <button
                 type="submit"
                 class="primary-btn"
             >
                 Submit Emergency Request
             </button>
+
 
 
             <div
@@ -412,25 +491,31 @@
         </form>
 
 
+
         <!-- REQUEST LIST -->
 
         <div class="request-list">
 
             <h3>
-                Current Requests on This Device
+                Current Emergency Requests
             </h3>
 
+
             <div id="requestResults">
+
                 Loading requests...
+
             </div>
 
         </div>
+
 
     </div>
 
 </section>
 
 </main>
+
 
 
 <footer>
@@ -442,519 +527,323 @@
 </footer>
 
 
+
+<!-- SUPABASE DATABASE -->
+
 <script src="../database.js"></script>
+
 
 
 <script>
 
-    const REQUEST_DB_NAME =
-        "BloodConnectRequests";
 
-    const REQUEST_STORE =
-        "requests";
+/* ================================
+   INITIALIZE
+================================ */
 
-    let requestDB;
+document.addEventListener(
+    "DOMContentLoaded",
+    async function() {
 
-
-    /* OPEN REQUEST DATABASE */
-
-    function openRequestDatabase() {
-
-        return new Promise((resolve, reject) => {
-
-            const request =
-                indexedDB.open(
-                    REQUEST_DB_NAME,
-                    2
-                );
-
-
-            request.onupgradeneeded =
-                function(event) {
-
-                    const database =
-                        event.target.result;
-
-
-                    if (
-                        !database.objectStoreNames.contains(
-                            REQUEST_STORE
-                        )
-                    ) {
-
-                        database.createObjectStore(
-                            REQUEST_STORE,
-                            {
-                                keyPath: "id",
-                                autoIncrement: true
-                            }
-                        );
-
-                    }
-
-                };
-
-
-            request.onsuccess =
-                function(event) {
-
-                    requestDB =
-                        event.target.result;
-
-                    resolve(requestDB);
-
-                };
-
-
-            request.onerror =
-                function(event) {
-
-                    reject(
-                        event.target.error
-                    );
-
-                };
-
-        });
+        await displayRequests();
 
     }
+);
 
 
-    /* SAVE REQUEST */
 
-    function saveRequest(requestData) {
+/* ================================
+   FORM SUBMISSION
+================================ */
 
-        return new Promise(
-            (resolve, reject) => {
+document.getElementById(
+    "requestForm"
+).addEventListener(
+    "submit",
+    async function(event) {
 
-                const transaction =
-                    requestDB.transaction(
-                        [REQUEST_STORE],
-                        "readwrite"
-                    );
+        event.preventDefault();
 
 
-                const store =
-                    transaction.objectStore(
-                        REQUEST_STORE
-                    );
+        const patientName =
+            document
+                .getElementById("patientName")
+                .value
+                .trim();
 
 
-                const request =
-                    store.add(requestData);
+        const bloodGroup =
+            document
+                .getElementById("requiredBloodGroup")
+                .value;
 
 
-                request.onsuccess =
-                    function() {
-
-                        resolve();
-
-                    };
-
-
-                request.onerror =
-                    function(event) {
-
-                        reject(
-                            event.target.error
-                        );
-
-                    };
-
-            }
-        );
-
-    }
-
-
-    /* GET REQUESTS */
-
-    function getRequests() {
-
-        return new Promise(
-            (resolve, reject) => {
-
-                const transaction =
-                    requestDB.transaction(
-                        [REQUEST_STORE],
-                        "readonly"
-                    );
-
-
-                const store =
-                    transaction.objectStore(
-                        REQUEST_STORE
-                    );
-
-
-                const request =
-                    store.getAll();
-
-
-                request.onsuccess =
-                    function() {
-
-                        resolve(
-                            request.result
-                        );
-
-                    };
-
-
-                request.onerror =
-                    function(event) {
-
-                        reject(
-                            event.target.error
-                        );
-
-                    };
-
-            }
-        );
-
-    }
-
-
-    /* DELETE REQUEST */
-
-    function deleteRequest(id) {
-
-        return new Promise(
-            (resolve, reject) => {
-
-                const transaction =
-                    requestDB.transaction(
-                        [REQUEST_STORE],
-                        "readwrite"
-                    );
-
-
-                const store =
-                    transaction.objectStore(
-                        REQUEST_STORE
-                    );
-
-
-                const request =
-                    store.delete(id);
-
-
-                request.onsuccess =
-                    function() {
-
-                        resolve();
-
-                    };
-
-
-                request.onerror =
-                    function(event) {
-
-                        reject(
-                            event.target.error
-                        );
-
-                    };
-
-            }
-        );
-
-    }
-
-
-    /* INITIALIZE */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        async function() {
-
-            try {
-
-                await openRequestDatabase();
-
-                await displayRequests();
-
-            }
-
-            catch(error) {
-
-                console.error(error);
-
-            }
-
-        }
-    );
-
-
-    /* FORM SUBMISSION */
-
-    document.getElementById(
-        "requestForm"
-    ).addEventListener(
-        "submit",
-        async function(event) {
-
-            event.preventDefault();
-
-
-            const patientName =
+        const units =
+            parseInt(
                 document
-                    .getElementById("patientName")
+                    .getElementById("units")
                     .value
-                    .trim();
-
-
-            const bloodGroup =
-                document
-                    .getElementById("requiredBloodGroup")
-                    .value;
-
-
-            const units =
-                parseInt(
-                    document
-                        .getElementById("units")
-                        .value
-                );
-
-
-            const hospital =
-                document
-                    .getElementById("hospital")
-                    .value
-                    .trim();
-
-
-            const location =
-                document
-                    .getElementById("requestLocation")
-                    .value
-                    .trim();
-
-
-            const contact =
-                document
-                    .getElementById("contactNumber")
-                    .value
-                    .trim();
-
-
-            const urgency =
-                document
-                    .getElementById("urgency")
-                    .value;
-
-
-            const additionalInfo =
-                document
-                    .getElementById("additionalInfo")
-                    .value
-                    .trim();
-
-
-            /* VALIDATION */
-
-            if (patientName.length < 2) {
-
-                showRequestMessage(
-                    "Please enter a valid patient name.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (!bloodGroup) {
-
-                showRequestMessage(
-                    "Please select a blood group.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                isNaN(units) ||
-                units < 1 ||
-                units > 20
-            ) {
-
-                showRequestMessage(
-                    "Please enter a valid number of units.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (!hospital) {
-
-                showRequestMessage(
-                    "Please enter the hospital name.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (!location) {
-
-                showRequestMessage(
-                    "Please enter the location.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                !/^[0-9]{10}$/.test(contact)
-            ) {
-
-                showRequestMessage(
-                    "Please enter a valid 10-digit contact number.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            if (!urgency) {
-
-                showRequestMessage(
-                    "Please select the urgency level.",
-                    "error"
-                );
-
-                return;
-
-            }
-
-
-            const requestData = {
-
-                patientName:
-                    patientName,
-
-                bloodGroup:
-                    bloodGroup,
-
-                units:
-                    units,
-
-                hospital:
-                    hospital,
-
-                location:
-                    location,
-
-                contact:
-                    contact,
-
-                urgency:
-                    urgency,
-
-                additionalInfo:
-                    additionalInfo ||
-                    "No additional information.",
-
-                createdAt:
-                    new Date().toISOString()
-
-            };
-
-
-            try {
-
-                await saveRequest(
-                    requestData
-                );
-
-
-                showRequestMessage(
-                    "Emergency blood request submitted successfully.",
-                    "success"
-                );
-
-
-                document
-                    .getElementById("requestForm")
-                    .reset();
-
-
-                await displayRequests();
-
-            }
-
-            catch(error) {
-
-                console.error(error);
-
-                showRequestMessage(
-                    "Unable to save the emergency request.",
-                    "error"
-                );
-
-            }
-
-        }
-    );
-
-
-    /* MESSAGE */
-
-    function showRequestMessage(
-        message,
-        type
-    ) {
-
-        const box =
-            document.getElementById(
-                "requestMessage"
             );
 
 
-        box.textContent =
-            message;
+        const hospital =
+            document
+                .getElementById("hospital")
+                .value
+                .trim();
 
 
-        box.className =
-            "request-message " +
-            (
-                type === "success"
-                    ? "request-success"
-                    : "request-error"
+        const location =
+            document
+                .getElementById("requestLocation")
+                .value
+                .trim();
+
+
+        const contact =
+            document
+                .getElementById("contactNumber")
+                .value
+                .trim();
+
+
+        const urgency =
+            document
+                .getElementById("urgency")
+                .value;
+
+
+        const additionalInfo =
+            document
+                .getElementById("additionalInfo")
+                .value
+                .trim();
+
+
+
+        /* ================================
+           VALIDATION
+        ================================= */
+
+        if (patientName.length < 2) {
+
+            showRequestMessage(
+                "Please enter a valid patient name.",
+                "error"
             );
 
+            return;
+
+        }
+
+
+        if (!bloodGroup) {
+
+            showRequestMessage(
+                "Please select a blood group.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            isNaN(units) ||
+            units < 1 ||
+            units > 20
+        ) {
+
+            showRequestMessage(
+                "Please enter a valid number of units.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (!hospital) {
+
+            showRequestMessage(
+                "Please enter the hospital name.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (!location) {
+
+            showRequestMessage(
+                "Please enter the location.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !/^[0-9]{10}$/.test(contact)
+        ) {
+
+            showRequestMessage(
+                "Please enter a valid 10-digit contact number.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (!urgency) {
+
+            showRequestMessage(
+                "Please select the urgency level.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+
+        /* ================================
+           REQUEST DATA
+        ================================= */
+
+        const requestData = {
+
+            patientName:
+                patientName,
+
+            bloodGroup:
+                bloodGroup,
+
+            unitsRequired:
+                units,
+
+            hospital:
+                hospital,
+
+            location:
+                location,
+
+            contactNumber:
+                contact,
+
+            urgency:
+                urgency,
+
+            additionalInformation:
+                additionalInfo ||
+                "No additional information."
+
+        };
+
+
+
+        /* ================================
+           SAVE TO SUPABASE
+        ================================= */
+
+        try {
+
+            await addEmergencyRequest(
+                requestData
+            );
+
+
+            showRequestMessage(
+                "Emergency blood request submitted successfully.",
+                "success"
+            );
+
+
+            document
+                .getElementById("requestForm")
+                .reset();
+
+
+            await displayRequests();
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "Emergency request error:",
+                error
+            );
+
+
+            showRequestMessage(
+                "Unable to save the emergency request. Please try again.",
+                "error"
+            );
+
+        }
+
     }
+);
 
 
-    /* DISPLAY REQUESTS */
 
-    async function displayRequests() {
+/* ================================
+   MESSAGE
+================================ */
+
+function showRequestMessage(
+    message,
+    type
+) {
+
+    const box =
+        document.getElementById(
+            "requestMessage"
+        );
+
+
+    box.textContent =
+        message;
+
+
+    box.className =
+        "request-message " +
+        (
+            type === "success"
+                ? "request-success"
+                : "request-error"
+        );
+
+}
+
+
+
+/* ================================
+   DISPLAY REQUESTS
+================================ */
+
+async function displayRequests() {
+
+    const container =
+        document.getElementById(
+            "requestResults"
+        );
+
+
+    try {
 
         const requests =
-            await getRequests();
-
-
-        const container =
-            document.getElementById(
-                "requestResults"
-            );
+            await getAllEmergencyRequests();
 
 
         container.innerHTML = "";
@@ -971,8 +860,8 @@
                     </h3>
 
                     <p>
-                        There are currently no blood
-                        requests stored on this device.
+                        There are currently no emergency
+                        blood requests in the shared database.
                     </p>
 
                 </div>
@@ -984,9 +873,9 @@
         }
 
 
-        requests
-            .reverse()
-            .forEach(request => {
+
+        requests.forEach(
+            request => {
 
                 const card =
                     document.createElement(
@@ -1001,43 +890,103 @@
                 card.innerHTML = `
 
                     <span class="urgent-label">
-                        ${escapeHTML(request.urgency)}
+
+                        ${escapeHTML(
+                            request.urgency || ""
+                        )}
+
                     </span>
 
+
                     <h4>
+
                         Blood Group:
-                        ${escapeHTML(request.bloodGroup)}
+                        ${escapeHTML(
+                            request.bloodGroup || ""
+                        )}
+
                     </h4>
 
-                    <p>
-                        <strong>Patient:</strong>
-                        ${escapeHTML(request.patientName)}
-                    </p>
 
                     <p>
-                        <strong>Units Required:</strong>
-                        ${escapeHTML(String(request.units))}
+
+                        <strong>
+                            Patient:
+                        </strong>
+
+                        ${escapeHTML(
+                            request.patientName || ""
+                        )}
+
                     </p>
 
-                    <p>
-                        <strong>Hospital:</strong>
-                        ${escapeHTML(request.hospital)}
-                    </p>
 
                     <p>
-                        <strong>Location:</strong>
-                        ${escapeHTML(request.location)}
+
+                        <strong>
+                            Units Required:
+                        </strong>
+
+                        ${escapeHTML(
+                            String(
+                                request.unitsRequired || ""
+                            )
+                        )}
+
                     </p>
 
-                    <p>
-                        <strong>Contact:</strong>
-                        ${escapeHTML(request.contact)}
-                    </p>
 
                     <p>
-                        <strong>Additional Information:</strong>
-                        ${escapeHTML(request.additionalInfo)}
+
+                        <strong>
+                            Hospital:
+                        </strong>
+
+                        ${escapeHTML(
+                            request.hospital || ""
+                        )}
+
                     </p>
+
+
+                    <p>
+
+                        <strong>
+                            Location:
+                        </strong>
+
+                        ${escapeHTML(
+                            request.location || ""
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Contact:
+                        </strong>
+
+                        ${escapeHTML(
+                            request.contactNumber || ""
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Additional Information:
+                        </strong>
+
+                        ${escapeHTML(
+                            request.additionalInformation || ""
+                        )}
+
+                    </p>
+
 
                     <button
                         class="delete-request"
@@ -1049,67 +998,122 @@
                 `;
 
 
-                container.appendChild(card);
+                container.appendChild(
+                    card
+                );
 
-            });
-
-    }
-
-
-    /* REMOVE REQUEST */
-
-    async function removeRequest(id) {
-
-        const confirmed =
-            confirm(
-                "Are you sure you want to delete this request?"
-            );
-
-
-        if (!confirmed) {
-            return;
-        }
-
-
-        try {
-
-            await deleteRequest(id);
-
-            await displayRequests();
-
-        }
-
-        catch(error) {
-
-            console.error(error);
-
-            alert(
-                "Unable to delete the request."
-            );
-
-        }
+            }
+        );
 
     }
 
+    catch(error) {
 
-    /* ESCAPE HTML */
+        console.error(
+            "Request loading error:",
+            error
+        );
 
-    function escapeHTML(value) {
 
-        const div =
-            document.createElement(
-                "div"
-            );
+        container.innerHTML = `
 
-        div.textContent =
-            value;
+            <div class="no-requests">
 
-        return div.innerHTML;
+                <h3>
+                    Unable to load requests
+                </h3>
+
+                <p>
+                    There was a problem accessing
+                    the shared database.
+                </p>
+
+            </div>
+
+        `;
 
     }
+
+}
+
+
+
+/* ================================
+   DELETE REQUEST
+================================ */
+
+async function removeRequest(id) {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to delete this request?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await deleteEmergencyRequest(
+            id
+        );
+
+
+        alert(
+            "Emergency request deleted successfully."
+        );
+
+
+        await displayRequests();
+
+    }
+
+    catch(error) {
+
+        console.error(
+            "Delete request error:",
+            error
+        );
+
+
+        alert(
+            "Unable to delete the request."
+        );
+
+    }
+
+}
+
+
+
+/* ================================
+   SECURITY
+================================ */
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        value;
+
+
+    return div.innerHTML;
+
+}
+
 
 </script>
+
 
 </body>
 
 </html>
+```
