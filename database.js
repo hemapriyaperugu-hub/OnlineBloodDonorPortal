@@ -1,209 +1,334 @@
-const DB_NAME = "BloodConnectDatabase";
-const DB_VERSION = 1;
-const STORE_NAME = "donors";
+// ============================================
+// BLOODCONNECT - SUPABASE DATABASE
+// ============================================
 
-let db = null;
+const SUPABASE_URL = "https://hutfetcubzrzehsnutgr.supabase.co";
 
-/* DATABASE READY PROMISE */
-
-let databaseReady = openDatabase();
-
-
-/* OPEN DATABASE */
-
-function openDatabase() {
-
-    return new Promise((resolve, reject) => {
-
-        const request =
-            indexedDB.open(DB_NAME, DB_VERSION);
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_nB9Bfwm2XHoijitzSRvS9w_VAUs0dC4";
 
 
-        request.onupgradeneeded = function (event) {
-
-            db = event.target.result;
-
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-
-                const store =
-                    db.createObjectStore(STORE_NAME, {
-                        keyPath: "id",
-                        autoIncrement: true
-                    });
-
-
-                store.createIndex(
-                    "bloodGroup",
-                    "bloodGroup",
-                    { unique: false }
-                );
-
-
-                store.createIndex(
-                    "location",
-                    "location",
-                    { unique: false }
-                );
-
-
-                store.createIndex(
-                    "availability",
-                    "availability",
-                    { unique: false }
-                );
-
-            }
-
-        };
-
-
-        request.onsuccess = function (event) {
-
-            db = event.target.result;
-
-            console.log(
-                "BloodConnect database initialized."
-            );
-
-            resolve(db);
-
-        };
-
-
-        request.onerror = function (event) {
-
-            console.error(
-                "Database initialization failed:",
-                event.target.error
-            );
-
-            reject(event.target.error);
-
-        };
-
-    });
-
+// Common headers for Supabase REST API
+function getHeaders() {
+    return {
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
+        "Authorization": `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        "Content-Type": "application/json"
+    };
 }
 
 
-/* ADD DONOR */
+// ============================================
+// DONORS
+// ============================================
 
+// Add a donor
 async function addDonor(donor) {
 
-    await databaseReady;
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/donors`,
+        {
+            method: "POST",
 
-    return new Promise((resolve, reject) => {
+            headers: {
+                ...getHeaders(),
+                "Prefer": "return=representation"
+            },
 
-        const transaction =
-            db.transaction(
-                [STORE_NAME],
-                "readwrite"
-            );
+            body: JSON.stringify({
+                name: donor.name,
+                age: donor.age,
+                blood_group: donor.bloodGroup,
+                phone: donor.phone,
+                location: donor.location,
+                last_donation: donor.lastDonation || null,
+                availability: donor.availability
+            })
+        }
+    );
 
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Add donor error:", error);
+        throw new Error("Failed to register donor.");
+    }
 
-        const store =
-            transaction.objectStore(STORE_NAME);
+    const data = await response.json();
 
-
-        const request =
-            store.add(donor);
-
-
-        request.onsuccess = function () {
-
-            resolve(request.result);
-
-        };
-
-
-        request.onerror = function (event) {
-
-            reject(event.target.error);
-
-        };
-
-    });
-
+    return convertDonor(data[0]);
 }
 
 
-/* GET ALL DONORS */
-
+// Get all donors
 async function getAllDonors() {
 
-    await databaseReady;
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/donors?select=*&order=id.asc`,
+        {
+            method: "GET",
+            headers: getHeaders()
+        }
+    );
 
-    return new Promise((resolve, reject) => {
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Get donors error:", error);
+        throw new Error("Failed to load donors.");
+    }
 
-        const transaction =
-            db.transaction(
-                [STORE_NAME],
-                "readonly"
-            );
+    const data = await response.json();
 
-
-        const store =
-            transaction.objectStore(STORE_NAME);
-
-
-        const request =
-            store.getAll();
-
-
-        request.onsuccess = function () {
-
-            resolve(request.result);
-
-        };
-
-
-        request.onerror = function (event) {
-
-            reject(event.target.error);
-
-        };
-
-    });
-
+    return data.map(convertDonor);
 }
 
 
-/* DELETE DONOR */
+// Get one donor by ID
+async function getDonorById(id) {
 
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/donors?id=eq.${id}&select=*`,
+        {
+            method: "GET",
+            headers: getHeaders()
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to load donor.");
+    }
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+        return null;
+    }
+
+    return convertDonor(data[0]);
+}
+
+
+// Update donor
+async function updateDonor(id, donor) {
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/donors?id=eq.${id}`,
+        {
+            method: "PATCH",
+
+            headers: {
+                ...getHeaders(),
+                "Prefer": "return=representation"
+            },
+
+            body: JSON.stringify({
+                name: donor.name,
+                age: donor.age,
+                blood_group: donor.bloodGroup,
+                phone: donor.phone,
+                location: donor.location,
+                last_donation: donor.lastDonation || null,
+                availability: donor.availability
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Update donor error:", error);
+        throw new Error("Failed to update donor.");
+    }
+
+    const data = await response.json();
+
+    return data.length > 0 ? convertDonor(data[0]) : null;
+}
+
+
+// Delete donor
 async function deleteDonor(id) {
 
-    await databaseReady;
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/donors?id=eq.${id}`,
+        {
+            method: "DELETE",
+            headers: getHeaders()
+        }
+    );
 
-    return new Promise((resolve, reject) => {
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Delete donor error:", error);
+        throw new Error("Failed to delete donor.");
+    }
 
-        const transaction =
-            db.transaction(
-                [STORE_NAME],
-                "readwrite"
-            );
-
-
-        const store =
-            transaction.objectStore(STORE_NAME);
-
-
-        const request =
-            store.delete(id);
-
-
-        request.onsuccess = function () {
-
-            resolve();
-
-        };
-
-
-        request.onerror = function (event) {
-
-            reject(event.target.error);
-
-        };
-
-    });
-
+    return true;
 }
+
+
+// Convert Supabase donor format
+// to the format already used by your website
+function convertDonor(donor) {
+
+    return {
+        id: donor.id,
+        name: donor.name,
+        age: donor.age,
+        bloodGroup: donor.blood_group,
+        phone: donor.phone,
+        location: donor.location,
+        lastDonation: donor.last_donation,
+        availability: donor.availability,
+        registeredDate: donor.registered_date
+    };
+}
+
+
+// ============================================
+// EMERGENCY REQUESTS
+// ============================================
+
+// Add emergency request
+async function addEmergencyRequest(requestData) {
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/emergency_requests`,
+        {
+            method: "POST",
+
+            headers: {
+                ...getHeaders(),
+                "Prefer": "return=representation"
+            },
+
+            body: JSON.stringify({
+                patient_name: requestData.patientName,
+                blood_group: requestData.bloodGroup,
+                units_required: requestData.unitsRequired,
+                hospital: requestData.hospital,
+                location: requestData.location,
+                contact_number: requestData.contactNumber,
+                urgency: requestData.urgency,
+                additional_information:
+                    requestData.additionalInformation || null
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Add emergency request error:", error);
+        throw new Error("Failed to create emergency request.");
+    }
+
+    const data = await response.json();
+
+    return convertEmergencyRequest(data[0]);
+}
+
+
+// Get all emergency requests
+async function getAllEmergencyRequests() {
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/emergency_requests?select=*&order=id.desc`,
+        {
+            method: "GET",
+            headers: getHeaders()
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Get emergency requests error:", error);
+        throw new Error("Failed to load emergency requests.");
+    }
+
+    const data = await response.json();
+
+    return data.map(convertEmergencyRequest);
+}
+
+
+// Delete emergency request
+async function deleteEmergencyRequest(id) {
+
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/emergency_requests?id=eq.${id}`,
+        {
+            method: "DELETE",
+            headers: getHeaders()
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.text();
+        console.error("Delete emergency request error:", error);
+        throw new Error("Failed to delete emergency request.");
+    }
+
+    return true;
+}
+
+
+// Convert Supabase request format
+// to the format used by the website
+function convertEmergencyRequest(request) {
+
+    return {
+        id: request.id,
+        patientName: request.patient_name,
+        bloodGroup: request.blood_group,
+        unitsRequired: request.units_required,
+        hospital: request.hospital,
+        location: request.location,
+        contactNumber: request.contact_number,
+        urgency: request.urgency,
+        additionalInformation:
+            request.additional_information,
+        createdAt: request.created_at
+    };
+}
+
+
+// ============================================
+// DATABASE CONNECTION TEST
+// ============================================
+
+async function testDatabaseConnection() {
+
+    try {
+
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/donors?select=id&limit=1`,
+            {
+                method: "GET",
+                headers: getHeaders()
+            }
+        );
+
+        if (response.ok) {
+            console.log("✅ BloodConnect Supabase database connected.");
+            return true;
+        }
+
+        console.error(
+            "❌ Supabase connection failed:",
+            await response.text()
+        );
+
+        return false;
+
+    } catch (error) {
+
+        console.error(
+            "❌ Database connection error:",
+            error
+        );
+
+        return false;
+    }
+}
+
+
+// Test connection when page loads
+testDatabaseConnection();
