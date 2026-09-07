@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -279,7 +279,10 @@
 <script>
 
 
-// Get donor ID from URL
+/* ================================
+   GET DONOR ID FROM URL
+================================ */
+
 function getDonorId() {
 
     const parameters =
@@ -287,19 +290,43 @@ function getDonorId() {
             window.location.search
         );
 
-    return Number(
-        parameters.get("id")
-    );
+
+    const id =
+        parameters.get("id");
+
+
+    if (!id) {
+
+        return null;
+
+    }
+
+
+    const donorId =
+        Number(id);
+
+
+    if (
+        !Number.isInteger(donorId) ||
+        donorId <= 0
+    ) {
+
+        return null;
+
+    }
+
+
+    return donorId;
 
 }
 
 
-// Load donor
+
+/* ================================
+   LOAD DONOR PROFILE
+================================ */
+
 async function loadDonorProfile() {
-
-    const donorId =
-        getDonorId();
-
 
     const profileArea =
         document.getElementById(
@@ -307,10 +334,14 @@ async function loadDonorProfile() {
         );
 
 
+    const donorId =
+        getDonorId();
+
+
     if (!donorId) {
 
         showError(
-            "No donor was selected."
+            "No valid donor was selected."
         );
 
         return;
@@ -318,36 +349,79 @@ async function loadDonorProfile() {
     }
 
 
-    const donors =
-        await getAllDonors();
+    try {
+
+        const donor =
+            await getDonorById(
+                donorId
+            );
 
 
-    const donor =
-        donors.find(function(item) {
+        if (!donor) {
 
-            return item.id === donorId;
+            showError(
+                "Donor profile could not be found."
+            );
 
-        });
+            return;
+
+        }
 
 
-    if (!donor) {
-
-        showError(
-            "Donor profile could not be found."
+        displayProfile(
+            donor
         );
-
-        return;
 
     }
 
 
-    displayProfile(donor);
+    catch(error) {
+
+        console.error(
+            "Donor profile loading error:",
+            error
+        );
+
+
+        profileArea.innerHTML = `
+
+            <div class="error-box">
+
+                <h2>
+                    Unable to Load Profile
+                </h2>
+
+                <p>
+                    The donor profile could not be
+                    loaded from the shared database.
+                </p>
+
+                <br>
+
+                <a
+                    href="advanced-search.html"
+                    class="action-btn"
+                >
+                    Return to Donor Search
+                </a>
+
+            </div>
+
+        `;
+
+    }
 
 }
 
 
-// Display profile
-function displayProfile(donor) {
+
+/* ================================
+   DISPLAY PROFILE
+================================ */
+
+function displayProfile(
+    donor
+) {
 
     const profileArea =
         document.getElementById(
@@ -371,7 +445,9 @@ function displayProfile(donor) {
 
         `;
 
-    } else {
+    }
+
+    else {
 
         availabilityHTML = `
 
@@ -382,6 +458,14 @@ function displayProfile(donor) {
         `;
 
     }
+
+
+    const registeredDate =
+        donor.registeredDate
+            ? new Date(
+                donor.registeredDate
+            ).toLocaleDateString()
+            : "Not available";
 
 
     profileArea.innerHTML = `
@@ -396,7 +480,9 @@ function displayProfile(donor) {
                 </div>
 
                 <h1>
-                    ${escapeHTML(donor.name)}
+                    ${escapeHTML(
+                        donor.name
+                    )}
                 </h1>
 
                 <p>
@@ -416,9 +502,11 @@ function displayProfile(donor) {
                     </strong>
 
                     <span class="blood-group">
+
                         ${escapeHTML(
                             donor.bloodGroup
                         )}
+
                     </span>
 
                 </div>
@@ -444,9 +532,11 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
+
                         ${escapeHTML(
                             donor.name
                         )}
+
                     </span>
 
                 </div>
@@ -459,7 +549,13 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
-                        ${donor.age}
+
+                        ${escapeHTML(
+                            String(
+                                donor.age
+                            )
+                        )}
+
                     </span>
 
                 </div>
@@ -472,9 +568,11 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
+
                         ${escapeHTML(
                             donor.location
                         )}
+
                     </span>
 
                 </div>
@@ -487,9 +585,11 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
+
                         ${escapeHTML(
                             donor.phone
                         )}
+
                     </span>
 
                 </div>
@@ -502,13 +602,15 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
+
                         ${
                             donor.lastDonation
-                            ? escapeHTML(
-                                donor.lastDonation
-                            )
-                            : "Not provided"
+                                ? escapeHTML(
+                                    donor.lastDonation
+                                )
+                                : "Not provided"
                         }
+
                     </span>
 
                 </div>
@@ -521,13 +623,11 @@ function displayProfile(donor) {
                     </strong>
 
                     <span>
-                        ${
-                            donor.registeredDate
-                            ? escapeHTML(
-                                donor.registeredDate
-                            )
-                            : "Not available"
-                        }
+
+                        ${escapeHTML(
+                            registeredDate
+                        )}
+
                     </span>
 
                 </div>
@@ -563,8 +663,14 @@ function displayProfile(donor) {
 }
 
 
-// Show error
-function showError(message) {
+
+/* ================================
+   SHOW ERROR
+================================ */
+
+function showError(
+    message
+) {
 
     document.getElementById(
         "profileArea"
@@ -577,7 +683,9 @@ function showError(message) {
             </h2>
 
             <p>
-                ${escapeHTML(message)}
+                ${escapeHTML(
+                    message
+                )}
             </p>
 
             <br>
@@ -596,25 +704,40 @@ function showError(message) {
 }
 
 
-// Prevent HTML injection
-function escapeHTML(value) {
+
+/* ================================
+   SECURITY
+================================ */
+
+function escapeHTML(
+    value
+) {
 
     const div =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     div.textContent =
         value ?? "";
+
 
     return div.innerHTML;
 
 }
 
 
-// Start
+
+/* ================================
+   START
+================================ */
+
 document.addEventListener(
     "DOMContentLoaded",
     loadDonorProfile
 );
+
 
 </script>
 
