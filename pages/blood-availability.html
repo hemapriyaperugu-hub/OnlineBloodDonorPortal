@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Blood Availability - BloodConnect
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="../style.css"
+    >
+
+    <style>
+
+        .availability-header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .availability-header h2 {
+            margin-bottom: 10px;
+        }
+
+        .availability-header p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .blood-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .blood-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            border-top: 5px solid #d32f2f;
+        }
+
+        .blood-type {
+            font-size: 35px;
+            font-weight: bold;
+            color: #b71c1c;
+            margin-bottom: 12px;
+        }
+
+        .blood-count {
+            font-size: 30px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .blood-label {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .availability-status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-available {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-none {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .summary-box {
+            margin-top: 35px;
+            background: #fff3f3;
+            border-left: 5px solid #d32f2f;
+            padding: 25px;
+            border-radius: 5px;
+        }
+
+        .summary-box h3 {
+            color: #b71c1c;
+            margin-bottom: 10px;
+        }
+
+        .summary-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .refresh-btn {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+
+            .blood-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 500px) {
+
+            .blood-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🩸 BloodConnect
+        </div>
+
+        <div class="nav-links">
+
+            <a href="../index.html">
+                Home
+            </a>
+
+            <a href="register.html">
+                Register
+            </a>
+
+            <a href="find-donor.html">
+                Find Donor
+            </a>
+
+            <a href="donor-dashboard.html">
+                Dashboard
+            </a>
+
+            <a href="blood-availability.html">
+                Availability
+            </a>
+
+            <a href="emergency-request.html">
+                Emergency
+            </a>
+
+        </div>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+<section class="page active">
+
+    <div class="container">
+
+
+        <div class="availability-header">
+
+            <h2>
+                Blood Group Availability
+            </h2>
+
+            <p>
+                View the number of available registered donors
+                for each blood group on this device.
+            </p>
+
+            <button
+                class="primary-btn refresh-btn"
+                onclick="loadAvailability()"
+            >
+                Refresh Availability
+            </button>
+
+        </div>
+
+
+        <!-- BLOOD GROUP CARDS -->
+
+        <div
+            id="bloodGrid"
+            class="blood-grid"
+        >
+        </div>
+
+
+        <!-- SUMMARY -->
+
+        <div class="summary-box">
+
+            <h3>
+                Availability Summary
+            </h3>
+
+            <p id="summaryText">
+                Loading availability information...
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        © 2026 BloodConnect |
+        Online Blood Donor Registration Portal
+    </p>
+
+</footer>
+
+
+<script src="../database.js"></script>
+
+
+<script>
+
+
+    const bloodGroups = [
+        "A+",
+        "A-",
+        "B+",
+        "B-",
+        "AB+",
+        "AB-",
+        "O+",
+        "O-"
+    ];
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            loadAvailability();
+
+        }
+    );
+
+
+    async function loadAvailability() {
+
+        const grid =
+            document.getElementById(
+                "bloodGrid"
+            );
+
+
+        const summary =
+            document.getElementById(
+                "summaryText"
+            );
+
+
+        grid.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                text-align:center;
+                padding:30px;
+            ">
+                Loading...
+            </div>
+        `;
+
+
+        try {
+
+            const donors =
+                await getAllDonors();
+
+
+            /*
+             * Count only donors whose
+             * availability is "Available".
+             */
+
+            const counts = {};
+
+
+            bloodGroups.forEach(
+                group => {
+
+                    counts[group] = 0;
+
+                }
+            );
+
+
+            donors.forEach(
+                donor => {
+
+                    if (
+                        donor.availability ===
+                        "Available"
+                    ) {
+
+                        if (
+                            counts.hasOwnProperty(
+                                donor.bloodGroup
+                            )
+                        ) {
+
+                            counts[
+                                donor.bloodGroup
+                            ]++;
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+            displayBloodGroups(
+                counts
+            );
+
+
+            updateSummary(
+                counts,
+                donors
+            );
+
+        }
+
+        catch(error) {
+
+            console.error(error);
+
+
+            grid.innerHTML = `
+                <div style="
+                    grid-column:1/-1;
+                    text-align:center;
+                    padding:30px;
+                ">
+                    Unable to load blood availability.
+                </div>
+            `;
+
+
+            summary.textContent =
+                "Unable to access the local donor database.";
+
+        }
+
+    }
+
+
+    function displayBloodGroups(
+        counts
+    ) {
+
+        const grid =
+            document.getElementById(
+                "bloodGrid"
+            );
+
+
+        grid.innerHTML = "";
+
+
+        bloodGroups.forEach(
+            group => {
+
+                const count =
+                    counts[group];
+
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "blood-card";
+
+
+                let statusHTML;
+
+
+                if (count > 0) {
+
+                    statusHTML = `
+                        <span class="
+                            availability-status
+                            status-available
+                        ">
+                            Available
+                        </span>
+                    `;
+
+                }
+
+                else {
+
+                    statusHTML = `
+                        <span class="
+                            availability-status
+                            status-none
+                        ">
+                            No Donors
+                        </span>
+                    `;
+
+                }
+
+
+                card.innerHTML = `
+
+                    <div class="blood-type">
+                        ${group}
+                    </div>
+
+                    <div class="blood-count">
+                        ${count}
+                    </div>
+
+                    <div class="blood-label">
+                        Available Donor${count === 1 ? "" : "s"}
+                    </div>
+
+                    ${statusHTML}
+
+                `;
+
+
+                grid.appendChild(card);
+
+            }
+        );
+
+    }
+
+
+    function updateSummary(
+        counts,
+        donors
+    ) {
+
+        const summary =
+            document.getElementById(
+                "summaryText"
+            );
+
+
+        const availableTotal =
+            Object.values(counts)
+                .reduce(
+                    (sum, count) =>
+                        sum + count,
+                    0
+                );
+
+
+        const groupsWithDonors =
+            Object.values(counts)
+                .filter(
+                    count => count > 0
+                )
+                .length;
+
+
+        summary.textContent =
+            `There are currently ${availableTotal}
+            available donor${availableTotal === 1 ? "" : "s"}
+            across ${groupsWithDonors}
+            blood group${groupsWithDonors === 1 ? "" : "s"}.
+            A total of ${donors.length}
+            donor record${donors.length === 1 ? "" : "s"}
+            ${donors.length === 1 ? "is" : "are"}
+            stored on this device.`;
+
+    }
+
+
+</script>
+
+
+</body>
+
+</html>

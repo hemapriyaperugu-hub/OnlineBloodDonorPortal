@@ -1,0 +1,810 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Admin Dashboard - BloodConnect</title>
+
+    <link rel="stylesheet" href="../style.css">
+
+    <script src="../database.js"></script>
+
+
+    <style>
+
+        .admin-header {
+            background: #b71c1c;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+
+        .admin-header h1 {
+            margin: 0 0 10px 0;
+        }
+
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(200px, 1fr));
+
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.08);
+        }
+
+
+        .stat-card h2 {
+            font-size: 35px;
+            margin: 10px 0;
+
+            color: #b71c1c;
+        }
+
+
+        .stat-card p {
+            margin: 0;
+            font-weight: bold;
+        }
+
+
+        .section-card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+
+            box-shadow:
+                0 3px 10px rgba(0,0,0,0.08);
+        }
+
+
+        .blood-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(130px, 1fr));
+
+            gap: 15px;
+        }
+
+
+        .blood-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+
+        .blood-card h3 {
+            color: #b71c1c;
+            margin-top: 0;
+        }
+
+
+        .blood-count {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+
+        .request-item {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        .request-item:last-child {
+            border-bottom: none;
+        }
+
+
+        .refresh-btn {
+            background: #b71c1c;
+            color: white;
+
+            border: none;
+            padding: 11px 20px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+
+        .refresh-btn:hover {
+            background: #8e0000;
+        }
+
+
+        .status {
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 15px;
+
+            font-size: 13px;
+        }
+
+
+        .critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+
+        .urgent {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+
+        .normal {
+            background: #d4edda;
+            color: #155724;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <nav class="navbar">
+
+        <div class="logo">
+            🩸 BloodConnect
+        </div>
+
+
+        <div class="nav-links">
+
+            <a href="../index.html">
+                Home
+            </a>
+
+            <a href="register.html">
+                Register
+            </a>
+
+            <a href="find-donor.html">
+                Find Donor
+            </a>
+
+            <a href="donor-dashboard.html">
+                Dashboard
+            </a>
+
+            <a href="blood-availability.html">
+                Availability
+            </a>
+
+            <a href="emergency-request.html">
+                Emergency
+            </a>
+
+            <a href="admin-dashboard.html">
+                Admin
+            </a>
+
+        </div>
+
+    </nav>
+
+</header>
+
+
+<section class="page active">
+
+    <div class="container">
+
+
+        <div class="admin-header">
+
+            <h1>
+                Admin Dashboard
+            </h1>
+
+            <p>
+                Overview of donors, blood availability
+                and emergency requests.
+            </p>
+
+        </div>
+
+
+        <!-- Main Statistics -->
+
+        <div class="stats-grid">
+
+
+            <div class="stat-card">
+
+                <p>
+                    Total Donors
+                </p>
+
+                <h2 id="totalDonors">
+                    0
+                </h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <p>
+                    Available Donors
+                </p>
+
+                <h2 id="availableDonors">
+                    0
+                </h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <p>
+                    Unavailable Donors
+                </p>
+
+                <h2 id="unavailableDonors">
+                    0
+                </h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <p>
+                    Blood Groups
+                </p>
+
+                <h2 id="bloodGroupCount">
+                    0
+                </h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <p>
+                    Emergency Requests
+                </p>
+
+                <h2 id="totalRequests">
+                    0
+                </h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <p>
+                    Critical Requests
+                </p>
+
+                <h2 id="criticalRequests">
+                    0
+                </h2>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Blood Group Distribution -->
+
+        <div class="section-card">
+
+            <h2>
+                Blood Group Distribution
+            </h2>
+
+            <p>
+                Number of available donors for each
+                blood group.
+            </p>
+
+
+            <div
+                id="bloodDistribution"
+                class="blood-grid"
+            >
+
+                Loading...
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Emergency Requests -->
+
+        <div class="section-card">
+
+            <h2>
+                Emergency Requests
+            </h2>
+
+
+            <div id="requestSummary">
+
+                Loading...
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Refresh -->
+
+        <div style="text-align:center;">
+
+            <button
+                class="refresh-btn"
+                onclick="loadDashboard()"
+            >
+                🔄 Refresh Dashboard
+            </button>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    <p>
+        © 2026 BloodConnect |
+        Online Blood Donor Registration Portal
+    </p>
+
+</footer>
+
+
+
+<script>
+
+
+const bloodGroups = [
+
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-",
+    "O+",
+    "O-"
+
+];
+
+
+
+// Load donor statistics
+async function loadDonorStatistics() {
+
+    const donors =
+        await getAllDonors();
+
+
+    const total =
+        donors.length;
+
+
+    const available =
+        donors.filter(function(donor) {
+
+            return donor.availability === "Available";
+
+        }).length;
+
+
+    const unavailable =
+        total - available;
+
+
+    const groups =
+        new Set(
+            donors.map(function(donor) {
+
+                return donor.bloodGroup;
+
+            })
+        );
+
+
+    document.getElementById(
+        "totalDonors"
+    ).textContent = total;
+
+
+    document.getElementById(
+        "availableDonors"
+    ).textContent = available;
+
+
+    document.getElementById(
+        "unavailableDonors"
+    ).textContent = unavailable;
+
+
+    document.getElementById(
+        "bloodGroupCount"
+    ).textContent = groups.size;
+
+
+    displayBloodDistribution(donors);
+
+}
+
+
+
+// Display blood distribution
+function displayBloodDistribution(donors) {
+
+    const container =
+        document.getElementById(
+            "bloodDistribution"
+        );
+
+
+    container.innerHTML = "";
+
+
+    bloodGroups.forEach(function(group) {
+
+
+        const count =
+            donors.filter(function(donor) {
+
+                return (
+                    donor.bloodGroup === group &&
+                    donor.availability === "Available"
+                );
+
+            }).length;
+
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "blood-card";
+
+
+        card.innerHTML = `
+
+            <h3>
+                ${group}
+            </h3>
+
+            <div class="blood-count">
+                ${count}
+            </div>
+
+            <p>
+                Available Donors
+            </p>
+
+        `;
+
+
+        container.appendChild(card);
+
+    });
+
+}
+
+
+
+// Load emergency requests
+function loadEmergencyRequests() {
+
+    const request =
+        indexedDB.open(
+            "BloodConnectRequests"
+        );
+
+
+    request.onerror =
+        function() {
+
+            document.getElementById(
+                "totalRequests"
+            ).textContent = "0";
+
+
+            document.getElementById(
+                "criticalRequests"
+            ).textContent = "0";
+
+
+            document.getElementById(
+                "requestSummary"
+            ).innerHTML =
+                "<p>No emergency request data available.</p>";
+
+        };
+
+
+    request.onsuccess =
+        function(event) {
+
+            const db =
+                event.target.result;
+
+
+            if (
+                !db.objectStoreNames.contains(
+                    "requests"
+                )
+            ) {
+
+                document.getElementById(
+                    "requestSummary"
+                ).innerHTML =
+                    "<p>No emergency requests found.</p>";
+
+                return;
+
+            }
+
+
+            const transaction =
+                db.transaction(
+                    ["requests"],
+                    "readonly"
+                );
+
+
+            const store =
+                transaction.objectStore(
+                    "requests"
+                );
+
+
+            const getRequest =
+                store.getAll();
+
+
+            getRequest.onsuccess =
+                function() {
+
+                    const requests =
+                        getRequest.result;
+
+
+                    document.getElementById(
+                        "totalRequests"
+                    ).textContent =
+                        requests.length;
+
+
+                    const critical =
+                        requests.filter(
+                            function(request) {
+
+                                return (
+                                    request.urgency ===
+                                    "Critical"
+                                );
+
+                            }
+                        ).length;
+
+
+                    document.getElementById(
+                        "criticalRequests"
+                    ).textContent =
+                        critical;
+
+
+                    displayRequests(
+                        requests
+                    );
+
+                };
+
+        };
+
+}
+
+
+
+// Display emergency requests
+function displayRequests(requests) {
+
+    const container =
+        document.getElementById(
+            "requestSummary"
+        );
+
+
+    container.innerHTML = "";
+
+
+    if (requests.length === 0) {
+
+        container.innerHTML =
+            "<p>No emergency requests found.</p>";
+
+        return;
+
+    }
+
+
+    requests.forEach(function(request) {
+
+
+        const item =
+            document.createElement("div");
+
+
+        item.className =
+            "request-item";
+
+
+        let urgencyClass =
+            "normal";
+
+
+        if (
+            request.urgency ===
+            "Critical"
+        ) {
+
+            urgencyClass =
+                "critical";
+
+        }
+        else if (
+            request.urgency ===
+            "Urgent"
+        ) {
+
+            urgencyClass =
+                "urgent";
+
+        }
+
+
+        item.innerHTML = `
+
+            <strong>
+                ${escapeHTML(
+                    request.patientName
+                )}
+            </strong>
+
+            <br>
+
+            Blood Group:
+            ${escapeHTML(
+                request.bloodGroup
+            )}
+
+            <br>
+
+            Hospital:
+            ${escapeHTML(
+                request.hospital
+            )}
+
+            <br>
+
+            Location:
+            ${escapeHTML(
+                request.location
+            )}
+
+            <br>
+
+            Units Required:
+            ${request.units}
+
+            <br>
+
+            Urgency:
+
+            <span
+                class="status ${urgencyClass}"
+            >
+                ${escapeHTML(
+                    request.urgency
+                )}
+            </span>
+
+        `;
+
+
+        container.appendChild(item);
+
+    });
+
+}
+
+
+
+// Escape HTML
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+
+    div.textContent =
+        value ?? "";
+
+
+    return div.innerHTML;
+
+}
+
+
+
+// Load everything
+async function loadDashboard() {
+
+    await loadDonorStatistics();
+
+    loadEmergencyRequests();
+
+}
+
+
+
+// Start dashboard
+document.addEventListener(
+    "DOMContentLoaded",
+    loadDashboard
+);
+
+</script>
+
+
+</body>
+
+</html>
+```

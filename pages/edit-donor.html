@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Donor - BloodConnect</title>
+
+    <link rel="stylesheet" href="../style.css">
+    <script src="../database.js"></script>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+
+        <div class="logo">🩸 BloodConnect</div>
+
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="register.html">Register</a>
+            <a href="find-donor.html">Find Donor</a>
+            <a href="donor-dashboard.html">Dashboard</a>
+            <a href="blood-availability.html">Availability</a>
+            <a href="emergency-request.html">Emergency</a>
+        </div>
+
+    </nav>
+</header>
+
+
+<section class="page active">
+
+    <div class="container">
+
+        <h1>Edit Donor Profile</h1>
+
+        <p>
+            Select a registered donor and update their information.
+        </p>
+
+        <div class="form-group">
+
+            <label for="donorSelect">Select Donor</label>
+
+            <select id="donorSelect">
+                <option value="">-- Select a donor --</option>
+            </select>
+
+        </div>
+
+
+        <div id="editFormContainer" style="display:none;">
+
+            <form id="editDonorForm">
+
+                <div class="two-columns">
+
+                    <div class="form-group">
+                        <label for="editName">Full Name</label>
+                        <input
+                            type="text"
+                            id="editName"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="editAge">Age</label>
+                        <input
+                            type="number"
+                            id="editAge"
+                            min="18"
+                            max="65"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="editBloodGroup">Blood Group</label>
+
+                        <select id="editBloodGroup" required>
+
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+
+                        </select>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="editPhone">Phone Number</label>
+
+                        <input
+                            type="text"
+                            id="editPhone"
+                            maxlength="10"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="editLocation">Location</label>
+
+                        <input
+                            type="text"
+                            id="editLocation"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="editLastDonation">
+                            Last Donation Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="editLastDonation"
+                        >
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="editAvailability">
+                        Availability
+                    </label>
+
+                    <select id="editAvailability" required>
+
+                        <option value="">Select Availability</option>
+                        <option value="Available">Available</option>
+                        <option value="Not Available">
+                            Not Available
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button type="submit" class="btn">
+                    Update Donor
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-btn"
+                    onclick="cancelEdit()"
+                >
+                    Cancel
+                </button>
+
+            </form>
+
+
+            <div
+                id="updateMessage"
+                style="
+                    margin-top:20px;
+                    padding:12px;
+                    border-radius:6px;
+                    display:none;
+                "
+            ></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<footer>
+
+    <p>
+        © 2026 BloodConnect | Online Blood Donor Registration Portal
+    </p>
+
+</footer>
+
+
+<script>
+
+let donors = [];
+let selectedDonorId = null;
+
+
+// Load donors
+async function loadDonors() {
+
+    donors = await getAllDonors();
+
+    const select = document.getElementById("donorSelect");
+
+    select.innerHTML =
+        '<option value="">-- Select a donor --</option>';
+
+    donors.forEach(function(donor) {
+
+        const option = document.createElement("option");
+
+        option.value = donor.id;
+
+        option.textContent =
+            donor.name +
+            " - " +
+            donor.bloodGroup +
+            " - " +
+            donor.location;
+
+        select.appendChild(option);
+
+    });
+}
+
+
+// When donor is selected
+document
+.getElementById("donorSelect")
+.addEventListener("change", function() {
+
+    const id = Number(this.value);
+
+    if (!id) {
+
+        document.getElementById(
+            "editFormContainer"
+        ).style.display = "none";
+
+        selectedDonorId = null;
+
+        return;
+    }
+
+    const donor = donors.find(function(item) {
+        return item.id === id;
+    });
+
+    if (!donor) {
+        return;
+    }
+
+    selectedDonorId = donor.id;
+
+    document.getElementById("editName").value =
+        donor.name || "";
+
+    document.getElementById("editAge").value =
+        donor.age || "";
+
+    document.getElementById("editBloodGroup").value =
+        donor.bloodGroup || "";
+
+    document.getElementById("editPhone").value =
+        donor.phone || "";
+
+    document.getElementById("editLocation").value =
+        donor.location || "";
+
+    document.getElementById("editLastDonation").value =
+        donor.lastDonation || "";
+
+    document.getElementById("editAvailability").value =
+        donor.availability || "";
+
+    document.getElementById(
+        "editFormContainer"
+    ).style.display = "block";
+
+});
+
+
+// Update donor
+document
+.getElementById("editDonorForm")
+.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    if (!selectedDonorId) {
+        return;
+    }
+
+    const name =
+        document.getElementById("editName").value.trim();
+
+    const age =
+        Number(document.getElementById("editAge").value);
+
+    const bloodGroup =
+        document.getElementById("editBloodGroup").value;
+
+    const phone =
+        document.getElementById("editPhone").value.trim();
+
+    const location =
+        document.getElementById("editLocation").value.trim();
+
+    const lastDonation =
+        document.getElementById("editLastDonation").value;
+
+    const availability =
+        document.getElementById("editAvailability").value;
+
+
+    // Validation
+    if (name.length < 3) {
+
+        showUpdateMessage(
+            "Name must contain at least 3 characters.",
+            false
+        );
+
+        return;
+    }
+
+
+    if (age < 18 || age > 65) {
+
+        showUpdateMessage(
+            "Age must be between 18 and 65.",
+            false
+        );
+
+        return;
+    }
+
+
+    if (!/^[0-9]{10}$/.test(phone)) {
+
+        showUpdateMessage(
+            "Phone number must contain exactly 10 digits.",
+            false
+        );
+
+        return;
+    }
+
+
+    if (!bloodGroup) {
+
+        showUpdateMessage(
+            "Please select a blood group.",
+            false
+        );
+
+        return;
+    }
+
+
+    if (!location) {
+
+        showUpdateMessage(
+            "Please enter a location.",
+            false
+        );
+
+        return;
+    }
+
+
+    if (!availability) {
+
+        showUpdateMessage(
+            "Please select availability.",
+            false
+        );
+
+        return;
+    }
+
+
+    const request = indexedDB.open(
+        "BloodConnectDatabase"
+    );
+
+
+    request.onsuccess = function(event) {
+
+        const db = event.target.result;
+
+        const transaction =
+            db.transaction(
+                ["donors"],
+                "readwrite"
+            );
+
+        const store =
+            transaction.objectStore("donors");
+
+
+        const getRequest =
+            store.get(selectedDonorId);
+
+
+        getRequest.onsuccess = function() {
+
+            const donor = getRequest.result;
+
+            if (!donor) {
+
+                showUpdateMessage(
+                    "Donor not found.",
+                    false
+                );
+
+                return;
+            }
+
+
+            donor.name = name;
+            donor.age = age;
+            donor.bloodGroup = bloodGroup;
+            donor.phone = phone;
+            donor.location = location;
+            donor.lastDonation = lastDonation;
+            donor.availability = availability;
+
+
+            store.put(donor);
+
+
+            transaction.oncomplete = function() {
+
+                showUpdateMessage(
+                    "Donor profile updated successfully!",
+                    true
+                );
+
+                loadDonors();
+
+            };
+
+        };
+
+    };
+
+});
+
+
+// Show message
+function showUpdateMessage(message, success) {
+
+    const box =
+        document.getElementById("updateMessage");
+
+    box.textContent = message;
+
+    box.style.display = "block";
+
+    if (success) {
+        box.style.background = "#d4edda";
+        box.style.color = "#155724";
+    } else {
+        box.style.background = "#f8d7da";
+        box.style.color = "#721c24";
+    }
+
+}
+
+
+// Cancel editing
+function cancelEdit() {
+
+    document.getElementById(
+        "editFormContainer"
+    ).style.display = "none";
+
+    document.getElementById(
+        "donorSelect"
+    ).value = "";
+
+    selectedDonorId = null;
+
+}
+
+
+// Start
+document.addEventListener(
+    "DOMContentLoaded",
+    loadDonors
+);
+
+</script>
+
+</body>
+</html>
